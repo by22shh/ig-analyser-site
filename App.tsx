@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Instagram, Search, Eye } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
@@ -8,8 +7,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 
 // Environment Variables
-const APIFY_TOKEN = import.meta.env.VITE_APIFY_TOKEN || "";
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+const APIFY_TOKEN = (import.meta as any).env?.VITE_APIFY_TOKEN || "";
 
 // --- VISUAL EFFECTS ---
 
@@ -127,10 +125,6 @@ const App: React.FC = () => {
         setError("Ошибка: Не найден VITE_APIFY_TOKEN. Проверьте .env файл.");
         return;
     }
-    if (!GEMINI_API_KEY) {
-        setError("Ошибка: Не найден VITE_GEMINI_API_KEY. Проверьте .env файл.");
-        return;
-    }
 
     if (!username) return;
     
@@ -160,7 +154,7 @@ const App: React.FC = () => {
       setLoadingProgress(0);
       setLoadingMessage("Загрузка медиа-контента для анализа...");
 
-      const analysis = await analyzeProfileWithGemini(data, GEMINI_API_KEY, (current, total, stage) => {
+      const analysis = await analyzeProfileWithGemini(data, (current, total, stage) => {
          if (stage === 'images') {
             const percentage = Math.round((current / total) * 100);
             setLoadingProgress(percentage);
