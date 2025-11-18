@@ -1,0 +1,5 @@
+{
+  "name": "ZRETI",
+  "description": "Глубокий ИИ-анализатор профилей Instagram, использующий Apify для данных и Gemini для психологических и поведенческих инсайтов.",
+  "requestFramePermissions": []
+}
