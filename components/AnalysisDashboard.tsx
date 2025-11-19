@@ -322,7 +322,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" hide />
                         {/* Fix: Start Y axis from 0 to avoid "flying" lines, but let it grow automatically */}
-                        <YAxis hide domain={[0, 'auto']} padding={{ top: 20, bottom: 5 }} />
+                        <YAxis hide domain={[0, 'auto']} padding={{ top: 50, bottom: 10 }} />
                         <Tooltip content={<CustomTooltip />} />
                         <Line 
                             type="monotone" 
