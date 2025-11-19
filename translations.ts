@@ -36,6 +36,10 @@ export const translations = {
     stat_sub_likes: "Последние {count} постов",
     stat_sub_interaction: "Взаимодействие",
     stat_sub_consistency: "Стабильность",
+    stat_chart_title: "Матрица Активности",
+    analyzed_count: "в анализе",
+    er_high: "Высокий",
+    er_avg: "Средний",
     
     // DigitalCircle
     circle_title: "Цифровой круг (Близкие связи)",
@@ -97,6 +101,10 @@ export const translations = {
     stat_sub_likes: "Last {count} posts",
     stat_sub_interaction: "Interaction",
     stat_sub_consistency: "Consistency",
+    stat_chart_title: "Activity Matrix",
+    analyzed_count: "analyzed",
+    er_high: "High",
+    er_avg: "Avg",
     
     // DigitalCircle
     circle_title: "Digital Circle (Close Connections)",

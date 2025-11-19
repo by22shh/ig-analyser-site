@@ -257,6 +257,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                     <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
                     <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
                     <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
+                    {/* Analyzed count */}
+                    <span className="flex items-center gap-1 text-cyber-accent"><Check className="w-3 h-3" /> {posts.length} {t('analyzed_count')}</span>
                 </div>
             </div>
         </div>
@@ -283,7 +285,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t('stat_likes')} value={avgLikes.toLocaleString()} subValue={t('stat_sub_likes', { count: posts.length })} icon={Heart} />
         <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} subValue={t('stat_sub_interaction')} icon={MessageCircle} />
-        <StatCard label={t('stat_er')} value={`${er}%`} subValue={parseFloat(er) > 3 ? "High" : "Avg"} icon={Activity} />
+        <StatCard label={t('stat_er')} value={`${er}%`} subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')} icon={Activity} />
         <StatCard label={t('stat_freq')} value={frequency} subValue={t('stat_sub_consistency')} icon={Calendar} />
       </div>
 
@@ -292,7 +294,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
                <div className="flex items-center gap-2 mb-4">
                     <BarChart3 className="w-4 h-4 text-cyber-accent" />
-                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stat_sub_interaction')} Matrix</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stat_chart_title')}</h3>
                </div>
                <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
