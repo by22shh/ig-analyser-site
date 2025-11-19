@@ -141,7 +141,8 @@ export type ProgressCallback = (current: number, total: number, stage: 'images' 
 
 export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  language: 'ru' | 'en' = 'ru'
 ): Promise<StrategicReport> => {
 
   // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
@@ -226,11 +227,15 @@ export const analyzeProfileWithGemini = async (
     VISUAL INTELLIGENCE REPORT (Deep Image Analysis):
     ${imageAnalysisResults.length > 0 ? imageAnalysisResults.join("\n\n") : "Visual analysis unavailable."}
   `;
+  
+  const langInstruction = language === 'en' 
+    ? "\n\nIMPORTANT: OUTPUT THE FINAL REPORT STRICTLY IN ENGLISH. TRANSLATE ALL SECTIONS, TITLES, AND INSIGHTS TO ENGLISH." 
+    : "";
 
   try {
     // Uses MODEL_REASONING for the big report
     const reportText = await openRouterCompletion([
-        { role: "system", content: PROFILE_ANALYSIS_PROMPT },
+        { role: "system", content: PROFILE_ANALYSIS_PROMPT + langInstruction },
         { role: "user", content: combinedContext }
     ], MODEL_REASONING, 0.5); 
 

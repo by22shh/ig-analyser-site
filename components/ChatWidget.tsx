@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Sparkles } from 'lucide-react';
 import { InstagramProfile, StrategicReport } from '../types';
 import { createChatSession, ChatSession } from '../services/geminiService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ChatWidgetProps {
   profile: InstagramProfile;
@@ -15,12 +16,13 @@ interface Message {
 }
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: 'intro', 
       role: 'model', 
-      text: `Досье на @${profile.username} загружено в память. Я готов ответить на вопросы по деталям фото, психотипу или помочь составить сообщение для контакта.` 
+      text: t('chat_intro', { username: profile.username }) 
     }
   ]);
   const [input, setInput] = useState('');
@@ -76,7 +78,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
       setMessages(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'model', 
-        text: "Произошла ошибка связи с нейроядром (OpenRouter). Попробуйте еще раз." 
+        text: t('chat_error') 
       }]);
     } finally {
       setIsTyping(false);
@@ -226,7 +228,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Спроси о деталях или попроси совет..."
+                        placeholder={t('chat_placeholder')}
                         className="w-full bg-[#020617] border border-slate-700 rounded-lg py-3 pl-4 pr-12 text-white placeholder-slate-500 focus:outline-none focus:border-cyber-accent focus:ring-1 focus:ring-cyber-accent/50 transition-all font-mono text-sm"
                         disabled={isTyping}
                     />

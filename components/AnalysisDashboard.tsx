@@ -4,6 +4,7 @@ import { InstagramProfile, StrategicReport } from '../types';
 import { ChatWidget } from './ChatWidget';
 import { ProfileAvatar } from './ProfileAvatar';
 import { DigitalCircle } from './DigitalCircle';
+import { useLanguage } from '../contexts/LanguageContext';
 import { 
   Download,  
   Eye,
@@ -184,6 +185,7 @@ const PrintStyles = () => (
 );
 
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, analysis, onReset }) => {
+  const { t } = useLanguage();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
   const handlePrint = () => {
@@ -249,12 +251,12 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
             />
             <div>
                 <h1 className="text-2xl font-display font-bold text-white tracking-wide print:text-black">
-                    ДОСЬЕ: @{profile.username.toUpperCase()}
+                    {t('dossier_prefix')} @{profile.username.toUpperCase()}
                 </h1>
                 <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-1 print:text-gray-600">
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} Followers</span>
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} Following</span>
-                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} Posts</span>
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
+                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
                 </div>
             </div>
         </div>
@@ -265,24 +267,24 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
             >
                <Download className="w-4 h-4" />
-               <span className="text-xs font-bold hidden md:inline">SAVE PDF</span>
+               <span className="text-xs font-bold hidden md:inline">{t('btn_pdf')}</span>
             </button>
              <button 
                 onClick={onReset}
                 className="p-2 bg-red-950/50 hover:bg-red-900/50 text-red-400 rounded border border-red-900/50 transition-colors flex items-center gap-2"
             >
                <RefreshCw className="w-4 h-4" />
-               <span className="text-xs font-bold hidden md:inline">NEW SCAN</span>
+               <span className="text-xs font-bold hidden md:inline">{t('btn_new')}</span>
             </button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Avg. Likes" value={avgLikes.toLocaleString()} subValue={`Last ${posts.length} posts`} icon={Heart} />
-        <StatCard label="Avg. Comments" value={avgComments.toLocaleString()} subValue="Interaction" icon={MessageCircle} />
-        <StatCard label="Engagement Rate" value={`${er}%`} subValue={parseFloat(er) > 3 ? "High" : "Avg"} icon={Activity} />
-        <StatCard label="Post Frequency" value={frequency} subValue="Consistency" icon={Calendar} />
+        <StatCard label={t('stat_likes')} value={avgLikes.toLocaleString()} subValue={t('stat_sub_likes', { count: posts.length })} icon={Heart} />
+        <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} subValue={t('stat_sub_interaction')} icon={MessageCircle} />
+        <StatCard label={t('stat_er')} value={`${er}%`} subValue={parseFloat(er) > 3 ? "High" : "Avg"} icon={Activity} />
+        <StatCard label={t('stat_freq')} value={frequency} subValue={t('stat_sub_consistency')} icon={Calendar} />
       </div>
 
       {/* Charts */}
@@ -290,7 +292,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
                <div className="flex items-center gap-2 mb-4">
                     <BarChart3 className="w-4 h-4 text-cyber-accent" />
-                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Activity Matrix</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stat_sub_interaction')} Matrix</h3>
                </div>
                <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -313,14 +315,14 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
           <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-green-500" /> Digital Footprint & Context
+                <Terminal className="w-4 h-4 text-green-500" /> {t('footprint_title')}
              </h3>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 {uniqueLocations.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <MapPin className="w-3 h-3" /> Recent Locations
+                            <MapPin className="w-3 h-3" /> {t('fp_locations')}
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {uniqueLocations.slice(0, 5).map((loc, i) => (
@@ -335,7 +337,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 {uniqueMusic.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Music className="w-3 h-3" /> Music Taste
+                            <Music className="w-3 h-3" /> {t('fp_music')}
                         </div>
                         <ul className="space-y-1">
                             {uniqueMusic.slice(0, 3).map((track, i) => (
@@ -350,7 +352,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 {relatedProfiles.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Users className="w-3 h-3" /> Related Circle
+                            <Users className="w-3 h-3" /> {t('fp_circle')}
                         </div>
                         <div className="flex flex-wrap gap-2">
                              {relatedProfiles.map((rp, i) => (
@@ -365,13 +367,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 {pinnedPostsCount > 0 && (
                      <div>
                         <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Pin className="w-3 h-3" /> Strategy
+                            <Pin className="w-3 h-3" /> {t('fp_strategy')}
                         </div>
                         <div className="text-sm text-white font-mono">
-                            {pinnedPostsCount} Pinned Post(s) detected.
+                            {t('pinned_detected', { count: pinnedPostsCount })}
                         </div>
                         <div className="text-[10px] text-slate-500 mt-1">
-                            High priority for analysis.
+                            {t('high_priority')}
                         </div>
                     </div>
                 )}

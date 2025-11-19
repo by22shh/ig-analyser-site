@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
@@ -7,6 +7,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { getSearchHistory, addToSearchHistory, HistoryItem } from './utils/storage';
+import { useLanguage } from './contexts/LanguageContext';
 
 // Environment Variables
 // Using process.env because we polyfilled/defined it in vite.config.ts
@@ -74,6 +75,8 @@ const AiCoreVisual = () => (
 // --- MAIN APP ---
 
 const App: React.FC = () => {
+  const { t, language, setLanguage } = useLanguage();
+  
   // Loading state is now granular: 1 = Apify, 2 = Images, 3 = Final
   const [step, setStep] = useState<'input' | 'loading' | 'result'>('input');
   const [loadingStage, setLoadingStage] = useState<1 | 2 | 3>(1);
@@ -120,7 +123,7 @@ const App: React.FC = () => {
       if (!currentData && inputUsername) {
           setLoadingStage(1);
           setLoadingProgress(10);
-          setLoadingMessage("Инициализация соединения... Поиск профиля...");
+          setLoadingMessage(t('loading_connect'));
 
           let cleanUsername = inputUsername.trim();
           if (cleanUsername.includes('instagram.com/')) {
@@ -137,14 +140,14 @@ const App: React.FC = () => {
               await new Promise(r => setTimeout(r, 400));
           } catch (err: any) {
               console.error(err);
-              setError(err.message || "Ошибка сбора данных.");
+              setError(err.message || t('error_fetch'));
               setStep('input');
               return;
           }
       }
 
       if (!currentData) {
-          setError("Системная ошибка: Данные профиля отсутствуют.");
+          setError(t('error_system'));
           setStep('input');
           return;
       }
@@ -152,20 +155,20 @@ const App: React.FC = () => {
       // PHASE 2 & 3: AI Analysis
       setLoadingStage(2);
       setLoadingProgress(0);
-      setLoadingMessage("Загрузка медиа-контента для анализа...");
+      setLoadingMessage(t('stage_2'));
 
       try {
           const analysis = await analyzeProfileWithGemini(currentData, (current, total, stage) => {
             if (stage === 'images') {
                 const percentage = Math.round((current / total) * 100);
                 setLoadingProgress(percentage);
-                setLoadingMessage(`Параллельный анализ: обработано ${current} из ${total} изображений`);
+                setLoadingMessage(t('loading_images', { current, total }));
             } else if (stage === 'final') {
                 setLoadingStage(3);
                 setLoadingProgress(0);
-                setLoadingMessage(`Синтез данных и формирование досье...`);
+                setLoadingMessage(t('loading_final'));
             }
-          });
+          }, language);
           
           setAnalysisResult(analysis);
           
@@ -175,7 +178,7 @@ const App: React.FC = () => {
           setStep('result');
       } catch (err: any) {
           console.error(err);
-          setError(err.message || "Ошибка анализа данных.");
+          setError(err.message || t('error_analysis'));
           // Keep profile data in state so user can retry just the analysis part
           setStep('input');
       }
@@ -220,6 +223,22 @@ const App: React.FC = () => {
                 </div>
                 <span className="font-display font-bold text-lg tracking-widest text-white">ZRETI</span>
             </div>
+
+            {/* Language Switcher */}
+            <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-white/10">
+                 <button 
+                    onClick={() => setLanguage('en')}
+                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'en' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
+                 >
+                    EN
+                 </button>
+                 <button 
+                    onClick={() => setLanguage('ru')}
+                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'ru' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
+                 >
+                    RU
+                 </button>
+            </div>
         </div>
       </nav>
 
@@ -231,12 +250,12 @@ const App: React.FC = () => {
 
                 <div className="text-center mb-12 relative z-20">
                     <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-6 uppercase tracking-tight drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] flex flex-col items-center leading-tight">
-                        <span>ПОДРОБНЫЙ</span>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 animate-pulse my-2">ИИ-АНАЛИЗ</span>
-                        <span className="text-3xl md:text-5xl tracking-widest font-sans font-extrabold mt-1">INSTAGRAM-ПРОФИЛЯ</span>
+                        <span>{t('app_title_prefix')}</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 animate-pulse my-2">{t('app_title_gradient')}</span>
+                        <span className="text-3xl md:text-5xl tracking-widest font-sans font-extrabold mt-1">{t('app_title_suffix')}</span>
                     </h1>
                     <p className="text-slate-300 max-w-lg mx-auto font-mono text-sm bg-black/40 backdrop-blur px-4 py-2 rounded border border-white/10">
-                        Система сканирует визуальные паттерны, скрытые метаданные и психологические маркеры для построения полного цифрового профиля личности.
+                        {t('app_description')}
                     </p>
                 </div>
 
@@ -246,7 +265,7 @@ const App: React.FC = () => {
                     <form onSubmit={handleAnalyzeClick} className="space-y-6 relative z-20">
                         <div>
                             <label className="flex justify-between text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2 font-mono">
-                                <span>Target Identifier</span>
+                                <span>{t('input_label')}</span>
                                 <span className="text-slate-500">REQUIRED</span>
                             </label>
                             <div className="relative group/input">
@@ -256,7 +275,7 @@ const App: React.FC = () => {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="@username"
+                                    placeholder={t('input_placeholder')}
                                     className="relative w-full bg-[#020617] border border-slate-700 rounded-lg py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all font-mono shadow-inner"
                                     required
                                 />
@@ -278,7 +297,7 @@ const App: React.FC = () => {
                                         className="w-full bg-cyber-800 hover:bg-cyber-700 border border-cyber-accent/30 text-cyber-accent py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-mono text-xs uppercase tracking-wider"
                                     >
                                         <RefreshCw className="w-4 h-4" />
-                                        Повторить анализ (данные уже загружены)
+                                        {t('retry_analysis')}
                                     </button>
                                 )}
                             </div>
@@ -290,7 +309,7 @@ const App: React.FC = () => {
                                 className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20"
                             >
                                 <span className="flex items-center gap-2 text-lg">
-                                    Запустить Анализ <Search className="w-5 h-5" />
+                                    {t('button_analyze')} <Search className="w-5 h-5" />
                                 </span>
                             </button>
                         )}
@@ -300,7 +319,7 @@ const App: React.FC = () => {
                     {recentSearches.length > 0 && (
                         <div className="mt-8 pt-6 border-t border-white/10 relative z-20">
                              <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4 uppercase tracking-widest">
-                                <History className="w-3 h-3" /> Недавние проверки
+                                <History className="w-3 h-3" /> {t('recent_searches')}
                              </div>
                              <div className="flex flex-wrap gap-2">
                                 {recentSearches.map((item) => (

@@ -2,13 +2,14 @@ import React from 'react';
 import { InstagramProfile } from '../types';
 import { analyzeConnections } from '../utils/analytics';
 import { Users, AtSign, MessageCircle, GitMerge } from 'lucide-react';
-import { ProfileAvatar } from './ProfileAvatar';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DigitalCircleProps {
   profile: InstagramProfile;
 }
 
 export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
+  const { t } = useLanguage();
   const connections = analyzeConnections(profile);
 
   if (connections.length === 0) return null;
@@ -18,7 +19,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
       
       <div className="flex items-center gap-2 mb-6 relative z-10">
         <GitMerge className="w-4 h-4 text-cyber-accent" />
-        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Digital Circle (Близкие связи)</h3>
+        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('circle_title')}</h3>
       </div>
 
       {/* Grid of connections */}
@@ -32,13 +33,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                 className="group flex items-center gap-3 bg-slate-900/40 hover:bg-slate-800/60 border border-white/5 hover:border-cyber-accent/30 p-3 rounded-lg transition-all duration-300"
             >
                 <div className="relative">
-                     {/* Avatar Placeholder (Using our component would require scraping avatar URL separately, which we don't have for connected users yet. 
-                         We can assume we don't have their pic unless we scrape them. 
-                         Wait, we don't have URLs for commenters/tagged users in the current scraping dataset usually, 
-                         unless 'latestComments' object is rich. Let's check types.
-                         InstagramComment only has 'ownerUsername'. So no pic. 
-                         We will use a generated avatar or just icon. 
-                     */}
+                     {/* Avatar Placeholder */}
                      <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-700 group-hover:border-cyber-accent/50 transition-colors">
                          <Users className="w-5 h-5" />
                      </div>
@@ -56,17 +51,17 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                     <div className="flex items-center gap-2 mt-1">
                         {user.type === 'mixed' && (
                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                Close
+                                {t('badge_close')}
                             </span>
                         )}
                         {user.type === 'tagged' && (
                             <span className="flex items-center gap-1 text-[9px] text-slate-500">
-                                <AtSign className="w-3 h-3" /> Tagged
+                                <AtSign className="w-3 h-3" /> {t('badge_tagged')}
                             </span>
                         )}
                         {user.type === 'commenter' && (
                             <span className="flex items-center gap-1 text-[9px] text-slate-500">
-                                <MessageCircle className="w-3 h-3" /> Active
+                                <MessageCircle className="w-3 h-3" /> {t('badge_active')}
                             </span>
                         )}
                         <span className="text-[9px] text-slate-600 ml-auto font-mono">

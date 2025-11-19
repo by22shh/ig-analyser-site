@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Brain, Database, Eye, Check } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoadingScreenProps {
   stage: 1 | 2 | 3;
@@ -9,10 +10,12 @@ interface LoadingScreenProps {
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ stage, progress, progressMessage }) => {
+  const { t } = useLanguage();
+
   const steps = [
-    { id: 1, label: 'Сбор Данных', icon: Database },
-    { id: 2, label: 'Обработка Медиа', icon: Eye },
-    { id: 3, label: 'Глубокий Анализ', icon: Brain },
+    { id: 1, label: t('stage_1'), icon: Database },
+    { id: 2, label: t('stage_2'), icon: Eye },
+    { id: 3, label: t('stage_3'), icon: Brain },
   ];
 
   return (
@@ -61,9 +64,9 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ stage, progress, p
       <div className="w-full max-w-sm relative z-10 mt-2">
         <div className="flex justify-between text-xs font-mono text-slate-400 mb-2">
              <span className="uppercase">
-                {stage === 1 ? 'Соединение...' : 
-                 stage === 2 ? 'Сканирование контента...' : 
-                 'Генерация отчета...'}
+                {stage === 1 ? t('loading_connect').split('.')[0] + '...' : 
+                 stage === 2 ? t('loading_images', { current: 0, total: 0 }).split(':')[0] + '...' : 
+                 t('loading_final').split('.')[0] + '...'}
              </span>
              <span className="text-cyber-accent">{Math.round(progress)}%</span>
         </div>
