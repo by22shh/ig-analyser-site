@@ -49,17 +49,19 @@ const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
     <div className="absolute right-2 top-2 text-cyber-700 group-hover:text-cyber-accent/20 transition-colors print:hidden">
       <Icon className="w-8 h-8 opacity-20" />
     </div>
-    <div className="flex items-center gap-1 mb-1">
-        <div className="text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest print:text-slate-600">{label}</div>
+    
+    {/* Label with Tooltip (Hover over label to see) */}
+    <div className="relative group/tooltip inline-block">
+        <div className={`text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest mb-1 print:text-slate-600 ${tooltip ? 'cursor-help border-b border-cyber-accent/20 border-dashed' : ''}`}>
+            {label}
+        </div>
         {tooltip && (
-            <div className="group/tooltip relative">
-                <div className="w-3 h-3 rounded-full border border-cyber-700/50 text-cyber-700 flex items-center justify-center text-[8px] font-mono cursor-help group-hover/tooltip:border-cyber-accent group-hover/tooltip:text-cyber-accent transition-colors">?</div>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-black/90 border border-cyber-700 rounded text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 leading-tight">
-                    {tooltip}
-                </div>
+            <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-black/95 border border-cyber-700 rounded text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-30 leading-tight shadow-xl backdrop-blur-sm">
+                {tooltip}
             </div>
         )}
     </div>
+    
     <div className="text-2xl font-display font-bold text-white tracking-wide print:text-black">{value}</div>
     {subValue && <div className="text-xs text-slate-400 font-mono mt-1 print:text-slate-600">{subValue}</div>}
   </div>
