@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { InstagramProfile, StrategicReport } from '../types';
 import { ChatWidget } from './ChatWidget';
 import { ProfileAvatar } from './ProfileAvatar';
+import { DigitalCircle } from './DigitalCircle';
 import { 
   Download,  
   Eye,
@@ -259,13 +260,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
         </div>
 
         <div className="flex gap-2 no-print">
-             <button 
-                onClick={() => copyToClipboard(analysis.rawText, 'full')}
-                className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
-            >
-               {copiedSection === 'full' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-               <span className="text-xs font-bold hidden md:inline">COPY RAW</span>
-            </button>
             <button 
                 onClick={handlePrint}
                 className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
@@ -337,6 +331,9 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                </div>
           </div>
       </div>
+
+      {/* Digital Circle (Connections) */}
+      <DigitalCircle profile={profile} />
 
       {/* Digital Footprint Section (New) */}
       {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
@@ -459,19 +456,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
          })}
       </div>
 
-      {analysis.visionAnalysis && analysis.visionAnalysis.length > 0 && (
-        <div className="mt-12 border-t border-cyber-800 pt-8 no-print">
-            <details className="group">
-                <summary className="flex items-center gap-2 cursor-pointer text-slate-500 hover:text-cyber-accent transition-colors list-none">
-                    <Terminal className="w-4 h-4" />
-                    <span className="text-xs font-mono uppercase tracking-widest">System Logs: Visual Intelligence Data</span>
-                </summary>
-                <div className="mt-4 bg-black/50 rounded-lg p-4 font-mono text-[10px] text-slate-500 overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto border border-cyber-900">
-                    {analysis.visionAnalysis.join("\n\n-------------------\n\n")}
-                </div>
-            </details>
-        </div>
-      )}
     </div>
   );
 };
