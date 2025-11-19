@@ -147,8 +147,8 @@ export const analyzeProfileWithGemini = async (
   // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
   // We analyze images in batches to reduce HTTP requests and speed up processing.
   // 100 posts -> ~20 requests instead of 100.
-  const postsToAnalyze = profileData.posts.slice(0, 12); // Increased limit slightly
-  const BATCH_SIZE = 4; // Send 4 images per single LLM request (Optimal for Gemini)
+  const postsToAnalyze = profileData.posts.slice(0, 30); // Increased limit to 30
+  const BATCH_SIZE = 5; // Send 5 images per single LLM request (Optimal for Gemini)
   
   const imageAnalysisResults: string[] = [];
   let processedCount = 0;

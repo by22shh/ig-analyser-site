@@ -47,7 +47,7 @@ export const fetchInstagramData = async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         directUrls: [`https://www.instagram.com/${username}`],
-        resultsLimit: 12, // Fetch slightly more to account for pinned posts/ads
+        resultsLimit: 35, // Fetch slightly more to account for pinned posts/ads
         resultsType: "posts",
         searchType: "hashtag", 
         enhanceUserSearchWithFacebookPage: false,
@@ -167,7 +167,7 @@ export const fetchInstagramData = async (
                 taggedUsers: item.taggedUsers ? item.taggedUsers.map((u:any) => u.username) : []
             };
         })
-        .slice(0, 12); // Take 12 to get a better range
+        .slice(0, 30); // Take 30 to get a better range
 
     // Map Related Profiles
     const relatedProfiles = metaData.relatedProfiles?.map((rp: any) => ({
