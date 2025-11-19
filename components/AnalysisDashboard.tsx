@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { InstagramProfile, StrategicReport } from '../types';
 import { ChatWidget } from './ChatWidget';
 import { ProfileAvatar } from './ProfileAvatar';
+import { ActivityHeatmap } from './ActivityHeatmap';
 import { 
-  Download, 
+  Download,  
   Eye,
   Copy,
   Check,
@@ -319,13 +320,26 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                     <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" hide />
+                        {/* Fix: Auto-scale Y axis with padding to prevent "upside down" look */}
+                        <YAxis hide domain={['auto', 'auto']} padding={{ top: 20, bottom: 10 }} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey="er" stroke="#a855f7" strokeWidth={2} dot={{fill: '#a855f7', r: 3}} activeDot={{r: 5, fill: '#fff'}} />
+                        <Line 
+                            type="monotone" 
+                            dataKey="er" 
+                            stroke="#a855f7" 
+                            strokeWidth={3} 
+                            dot={{fill: '#a855f7', r: 4, strokeWidth: 0}} 
+                            activeDot={{r: 6, fill: '#fff'}} 
+                            isAnimationActive={true}
+                        />
                     </LineChart>
                   </ResponsiveContainer>
                </div>
           </div>
       </div>
+
+      {/* Posting Heatmap */}
+      <ActivityHeatmap posts={posts} />
 
       {/* Digital Footprint Section (New) */}
       {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
