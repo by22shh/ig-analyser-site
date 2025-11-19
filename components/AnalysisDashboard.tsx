@@ -322,8 +322,12 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34,211,238,0.05)'}} />
-                        <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        {/* Use two Y axes to handle scale difference between likes and comments */}
+                        <YAxis yAxisId="left" orientation="left" hide />
+                        <YAxis yAxisId="right" orientation="right" hide />
+                        
+                        <Bar yAxisId="left" dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Bar yAxisId="right" dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
                     </BarChart>
                   </ResponsiveContainer>
                </div>
