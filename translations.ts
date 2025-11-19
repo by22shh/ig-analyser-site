@@ -25,7 +25,7 @@ export const translations = {
     loading_final: "Синтез данных и формирование досье...",
     
     // AnalysisDashboard
-    dossier_prefix: "ДОСЬЕ:",
+    dossier_prefix: "ОТЧЕТ:",
     followers: "Подписчики",
     following: "Подписки",
     posts: "Посты",
@@ -95,7 +95,7 @@ export const translations = {
     loading_final: "Data synthesis and dossier generation...",
     
     // AnalysisDashboard
-    dossier_prefix: "DOSSIER:",
+    dossier_prefix: "REPORT:",
     followers: "Followers",
     following: "Following",
     posts: "Posts",

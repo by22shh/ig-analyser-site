@@ -263,10 +263,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
               className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] print:shadow-none print:border-gray-400 object-cover"
             />
             <div>
-                <h1 className="text-2xl font-display font-bold text-white tracking-wide print:text-black">
-                    {t('dossier_prefix')} @{profile.username.toUpperCase()}
+                <h1 className="text-xl md:text-2xl font-sans font-bold text-white tracking-normal print:text-black">
+                    <span className="text-cyber-accent/80 mr-2 font-mono text-lg md:text-xl">{t('dossier_prefix')}</span>
+                    @{profile.username}
                 </h1>
-                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-1 print:text-gray-600">
+                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-2 print:text-gray-600">
                     <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
                     <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
                     <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
