@@ -10,8 +10,6 @@ export default defineConfig(({ mode }) => {
     define: {
       // Expose API_KEY to the client side as process.env.API_KEY
       'process.env.API_KEY': JSON.stringify(process.env.API_KEY || env.API_KEY || ''),
-      // Prevent "process is not defined" errors if accessed loosely
-      'process.env': {}
     }
   }
 })
