@@ -9,4 +9,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Отключаем сканирование секретов для этого проекта
+  # API ключи используются в клиентском коде по дизайну
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 

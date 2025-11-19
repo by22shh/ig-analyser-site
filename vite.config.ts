@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Прокидываем API_KEY в клиентский код
-      'process.env.API_KEY': JSON.stringify(process.env.API_KEY || env.API_KEY || ''),
+      // Прокидываем VITE_GEMINI_API_KEY в клиентский код через стандартный механизм Vite
+      'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || ''),
     }
   }
 })
