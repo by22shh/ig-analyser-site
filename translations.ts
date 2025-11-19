@@ -40,6 +40,7 @@ export const translations = {
     analyzed_count: "в анализе",
     er_high: "Высокий",
     er_avg: "Средний",
+    er_tooltip: "Engagement Rate (ER) — это процент подписчиков, которые взаимодействуют с контентом (лайки + комментарии). Высокий ER > 3% означает живую и лояльную аудиторию.",
     
     // DigitalCircle
     circle_title: "Цифровой круг (Близкие связи)",
@@ -105,6 +106,7 @@ export const translations = {
     analyzed_count: "analyzed",
     er_high: "High",
     er_avg: "Avg",
+    er_tooltip: "Engagement Rate (ER) is the percentage of followers engaging with content (likes + comments). High ER > 3% indicates an active and loyal audience.",
     
     // DigitalCircle
     circle_title: "Digital Circle (Close Connections)",

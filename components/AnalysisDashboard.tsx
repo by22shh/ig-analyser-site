@@ -44,12 +44,22 @@ interface AnalysisDashboardProps {
 
 // --- VISUAL COMPONENTS ---
 
-const StatCard = ({ label, value, subValue, icon: Icon }: any) => (
+const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
   <div className="bg-cyber-800/40 border border-cyber-700/50 p-4 rounded-xl backdrop-blur-sm relative overflow-hidden group hover:border-cyber-accent/50 transition-colors print:border-gray-300 print:bg-white print:break-inside-avoid">
     <div className="absolute right-2 top-2 text-cyber-700 group-hover:text-cyber-accent/20 transition-colors print:hidden">
       <Icon className="w-8 h-8 opacity-20" />
     </div>
-    <div className="text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest mb-1 print:text-slate-600">{label}</div>
+    <div className="flex items-center gap-1 mb-1">
+        <div className="text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest print:text-slate-600">{label}</div>
+        {tooltip && (
+            <div className="group/tooltip relative">
+                <div className="w-3 h-3 rounded-full border border-cyber-700/50 text-cyber-700 flex items-center justify-center text-[8px] font-mono cursor-help group-hover/tooltip:border-cyber-accent group-hover/tooltip:text-cyber-accent transition-colors">?</div>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-black/90 border border-cyber-700 rounded text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 leading-tight">
+                    {tooltip}
+                </div>
+            </div>
+        )}
+    </div>
     <div className="text-2xl font-display font-bold text-white tracking-wide print:text-black">{value}</div>
     {subValue && <div className="text-xs text-slate-400 font-mono mt-1 print:text-slate-600">{subValue}</div>}
   </div>
@@ -285,7 +295,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t('stat_likes')} value={avgLikes.toLocaleString()} subValue={t('stat_sub_likes', { count: posts.length })} icon={Heart} />
         <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} subValue={t('stat_sub_interaction')} icon={MessageCircle} />
-        <StatCard label={t('stat_er')} value={`${er}%`} subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')} icon={Activity} />
+        <StatCard 
+            label={t('stat_er')} 
+            value={`${er}%`} 
+            subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')} 
+            icon={Activity} 
+            tooltip={t('er_tooltip')}
+        />
         <StatCard label={t('stat_freq')} value={frequency} subValue={t('stat_sub_consistency')} icon={Calendar} />
       </div>
 
