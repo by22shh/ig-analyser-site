@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { InstagramProfile, StrategicReport } from '../types';
 import { ChatWidget } from './ChatWidget';
 import { ProfileAvatar } from './ProfileAvatar';
-import { ActivityHeatmap } from './ActivityHeatmap';
 import { 
   Download,  
   Eye,
@@ -338,9 +337,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                </div>
           </div>
       </div>
-
-      {/* Posting Heatmap */}
-      <ActivityHeatmap posts={posts} />
 
       {/* Digital Footprint Section (New) */}
       {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
