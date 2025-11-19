@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
 import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
+import { getSearchHistory, addToSearchHistory, HistoryItem } from './utils/storage';
 
 // Environment Variables
 // Using process.env because we polyfilled/defined it in vite.config.ts
@@ -83,6 +84,13 @@ const App: React.FC = () => {
   
   const [profileData, setProfileData] = useState<InstagramProfile | null>(null);
   const [analysisResult, setAnalysisResult] = useState<StrategicReport | null>(null);
+  
+  // Load history on mount
+  const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
+  
+  useEffect(() => {
+      setRecentSearches(getSearchHistory());
+  }, [step]); // Refresh when step changes (e.g. after successful analysis)
 
   // Simulated progress for Stage 3
   useEffect(() => {
@@ -150,15 +158,19 @@ const App: React.FC = () => {
             if (stage === 'images') {
                 const percentage = Math.round((current / total) * 100);
                 setLoadingProgress(percentage);
-                setLoadingMessage(`Сканирование визуальных паттернов: обработано ${current} из ${total}`);
+                setLoadingMessage(`Параллельный анализ: обработано ${current} из ${total} изображений`);
             } else if (stage === 'final') {
                 setLoadingStage(3);
                 setLoadingProgress(0);
-                setLoadingMessage(`Формирование стратегического досье...`);
+                setLoadingMessage(`Синтез данных и формирование досье...`);
             }
           });
           
           setAnalysisResult(analysis);
+          
+          // SAVE TO HISTORY
+          addToSearchHistory(currentData.username, currentData, analysis);
+          
           setStep('result');
       } catch (err: any) {
           console.error(err);
@@ -180,6 +192,18 @@ const App: React.FC = () => {
   const handleRetryAnalysis = () => {
       if (profileData) {
           startAnalysisFlow(undefined, profileData);
+      }
+  };
+  
+  const loadFromHistory = (item: HistoryItem) => {
+      if (item.profileData && item.reportData) {
+           setProfileData(item.profileData);
+           setAnalysisResult(item.reportData);
+           setStep('result');
+      } else {
+           // Re-run analysis if we only saved the username
+           setUsername(item.username);
+           startAnalysisFlow(item.username);
       }
   };
 
@@ -270,6 +294,40 @@ const App: React.FC = () => {
                             </button>
                         )}
                     </form>
+                    
+                    {/* RECENT SEARCHES */}
+                    {recentSearches.length > 0 && (
+                        <div className="mt-8 pt-6 border-t border-white/10 relative z-20">
+                             <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4 uppercase tracking-widest">
+                                <History className="w-3 h-3" /> Недавние проверки
+                             </div>
+                             <div className="flex flex-wrap gap-2">
+                                {recentSearches.map((item) => (
+                                    <button
+                                        key={item.username}
+                                        onClick={() => loadFromHistory(item)}
+                                        className="group flex items-center gap-3 bg-slate-800/50 hover:bg-cyber-900/80 border border-slate-700 hover:border-cyber-accent/50 rounded-lg p-2 pr-4 transition-all"
+                                    >
+                                        <div className="w-8 h-8 rounded bg-slate-700 overflow-hidden">
+                                            {item.profileData?.profilePicUrl ? (
+                                                <img src={item.profileData.profilePicUrl} alt={item.username} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                                    <Instagram className="w-4 h-4" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent">@{item.username}</div>
+                                            <div className="text-[10px] text-slate-500">
+                                                {new Date(item.timestamp).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                             </div>
+                        </div>
+                    )}
                 </div>
             </div>
         )}

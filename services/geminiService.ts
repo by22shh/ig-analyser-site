@@ -137,55 +137,56 @@ async function openRouterCompletion(
 
 // --- ANALYSIS LOGIC ---
 
-export type ProgressCallback = (current: number, total: number, stage: 'images' | 'final') => void;
+export type ProgressCallback = (current: number, total: number, stage: 'images' | 'final' | 'processing') => void;
 
 export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
   onProgress?: ProgressCallback
 ): Promise<StrategicReport> => {
 
-  // 1. VISUAL INTELLIGENCE STAGE
   // Limit to 10 posts to avoid token limits and timeouts
   const postsToAnalyze = profileData.posts.slice(0, 10);
-  let totalOperations = postsToAnalyze.length;
+  let totalImageOperations = postsToAnalyze.length;
   // Estimate extra operations for carousels (checking 2nd slide)
-  postsToAnalyze.forEach(p => { if(p.childPosts && p.childPosts.length > 1) totalOperations++; });
+  postsToAnalyze.forEach(p => { if(p.childPosts && p.childPosts.length > 1) totalImageOperations++; });
 
   const imageAnalysisResults: string[] = [];
-  let completedOperations = 0;
+  let completedImageOperations = 0;
 
-  if (onProgress) onProgress(0, totalOperations, 'images');
+  if (onProgress) onProgress(0, totalImageOperations, 'images');
 
-  const BATCH_SIZE = 3; // Process 3 images in parallel
+  // --- PARALLEL EXECUTION START ---
   
-  for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
-      const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
+  // 1. Start Image Analysis Process
+  const imageAnalysisPromise = (async () => {
+      const BATCH_SIZE = 3; // Process 3 images in parallel
       
-      await Promise.all(batch.map(async (post) => {
-          // Analyze Main Image -> Uses MODEL_VISION
-          if (post.displayUrl) {
-             await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
-          }
-          completedOperations++;
-          if (onProgress) onProgress(completedOperations, totalOperations, 'images');
-
-          // Analyze One Carousel Image (Context) if available -> Uses MODEL_VISION
-          if (post.childPosts && post.childPosts.length > 1) {
-              // Take the 2nd image (index 1) usually hidden from main view
-              const hiddenImageUrl = post.childPosts[1]; 
-              if (hiddenImageUrl) {
-                  await analyzeSingleImage(hiddenImageUrl, post.id, "CAROUSEL_SLIDE_2", imageAnalysisResults);
+      for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
+          const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
+          
+          await Promise.all(batch.map(async (post) => {
+              // Analyze Main Image -> Uses MODEL_VISION
+              if (post.displayUrl) {
+                 await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
               }
-              completedOperations++;
-              if (onProgress) onProgress(completedOperations, totalOperations, 'images');
-          }
-      }));
-  }
+              completedImageOperations++;
+              if (onProgress) onProgress(completedImageOperations, totalImageOperations, 'images');
 
-  // 2. STRATEGIC ANALYSIS STAGE
-  if (onProgress) onProgress(totalOperations, totalOperations, 'final');
+              // Analyze One Carousel Image (Context) if available -> Uses MODEL_VISION
+              if (post.childPosts && post.childPosts.length > 1) {
+                  // Take the 2nd image (index 1) usually hidden from main view
+                  const hiddenImageUrl = post.childPosts[1]; 
+                  if (hiddenImageUrl) {
+                      await analyzeSingleImage(hiddenImageUrl, post.id, "CAROUSEL_SLIDE_2", imageAnalysisResults);
+                  }
+                  completedImageOperations++;
+                  if (onProgress) onProgress(completedImageOperations, totalImageOperations, 'images');
+              }
+          }));
+      }
+  })();
 
-  // Enrich context with metadata
+  // 2. Prepare Text Context (Metadata) - Run immediately
   const metadataContext = profileData.posts.map(p => {
       return `
       POST ID: ${p.id}
@@ -204,7 +205,7 @@ export const analyzeProfileWithGemini = async (
       ? `RELATED ACCOUNTS (Potential Circle): ${profileData.relatedProfiles.map(p => p.username).join(", ")}` 
       : "";
 
-  const combinedContext = `
+  const textContext = `
     PROFILE METADATA:
     Username: ${profileData.username}
     Full Name: ${profileData.fullName}
@@ -215,6 +216,19 @@ export const analyzeProfileWithGemini = async (
 
     POSTS METADATA (Psychological Signals):
     ${metadataContext}
+  `;
+
+  // Wait for Image Analysis to finish before Final Report
+  // We can't run the Final Report purely in parallel because it DEPENDS on the image insights.
+  // However, we optimized by preparing text context while images were processing.
+  
+  await imageAnalysisPromise;
+
+  // 3. FINAL STRATEGIC ANALYSIS STAGE
+  if (onProgress) onProgress(0, 100, 'final');
+
+  const combinedContext = `
+    ${textContext}
 
     VISUAL INTELLIGENCE REPORT (Deep Image Analysis):
     ${imageAnalysisResults.length > 0 ? imageAnalysisResults.join("\n\n") : "Visual analysis unavailable."}
