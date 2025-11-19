@@ -15,18 +15,22 @@ const MODEL_REASONING = "google/gemini-3-pro-preview";
 // --- UTILS ---
 
 const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд тайм-аут на загрузку картинки
+
   try {
     const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800&q=80`; 
-    const response = await fetch(proxyUrl);
+    const response = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
     
     if (!response.ok) return null;
     
     const blob = await response.blob();
-    return new Promise((resolve) => {
+    return await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const res = reader.result as string;
-        if (res.startsWith('data:image')) {
+        if (res && res.startsWith('data:image')) {
             resolve(res);
         } else {
             resolve(null);
@@ -36,7 +40,8 @@ const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
       reader.readAsDataURL(blob);
     });
   } catch (e) {
-    console.warn("Failed to fetch image for analysis, skipping.");
+    clearTimeout(timeoutId);
+    console.warn(`Failed to fetch image for analysis (${url}), skipping.`, e);
     return null;
   }
 };
@@ -63,6 +68,11 @@ async function openRouterCompletion(
     let lastError;
 
     for (let i = 0; i < maxRetries; i++) {
+        const controller = new AbortController();
+        // Увеличиваем тайм-аут для тяжелых моделей, но ставим предел
+        const timeoutDuration = model === MODEL_VISION ? 25000 : 60000; 
+        const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
@@ -76,8 +86,11 @@ async function openRouterCompletion(
                     model: model,
                     messages: messages,
                     temperature: temperature,
-                })
+                }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -88,8 +101,13 @@ async function openRouterCompletion(
             return data.choices[0]?.message?.content || "";
 
         } catch (err: any) {
+            clearTimeout(timeoutId);
             console.warn(`Attempt ${i+1} failed: ${err.message}`);
             lastError = err;
+            if (err.name === 'AbortError') {
+                // Если тайм-аут, возможно стоит попробовать еще раз или просто пропустить
+                console.warn("Request timed out");
+            }
             await delay(1000 * (i + 1)); 
         }
     }
@@ -129,6 +147,7 @@ export const analyzeProfileWithGemini = async (
              await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
           }
           completedOperations++;
+          if (onProgress) onProgress(completedOperations, totalOperations, 'images');
 
           // Analyze One Carousel Image (Context) if available
           if (post.childPosts && post.childPosts.length > 1) {
@@ -138,10 +157,9 @@ export const analyzeProfileWithGemini = async (
                   await analyzeSingleImage(hiddenImageUrl, post.id, "CAROUSEL_SLIDE_2", imageAnalysisResults);
               }
               completedOperations++;
+              if (onProgress) onProgress(completedOperations, totalOperations, 'images');
           }
       }));
-
-      if (onProgress) onProgress(completedOperations, totalOperations, 'images');
   }
 
   // 2. STRATEGIC ANALYSIS STAGE
@@ -220,6 +238,9 @@ export const analyzeProfileWithGemini = async (
 };
 
 async function analyzeSingleImage(url: string, postId: string, label: string, resultsArray: string[]) {
+    // If URL is clearly invalid, skip immediately
+    if (!url || url.includes('null') || url.includes('undefined')) return;
+
     const base64 = await fetchImageAsBase64(url);
     if (!base64) return;
 
@@ -272,6 +293,9 @@ export const createChatSession = (
 
             history.push({ role: "user", content: userMessage });
 
+            // Use fetch with abort controller for streaming too
+            const controller = new AbortController();
+            
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -284,7 +308,8 @@ export const createChatSession = (
                     model: MODEL_REASONING,
                     messages: history,
                     stream: true
-                })
+                }),
+                signal: controller.signal
             });
 
             if (!response.body) throw new Error("No response body");
