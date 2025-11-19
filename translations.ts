@@ -26,31 +26,31 @@ export const translations = {
     
     // AnalysisDashboard
     dossier_prefix: "ДОСЬЕ:",
-    followers: "Followers",
-    following: "Following",
-    posts: "Posts",
-    stat_likes: "Avg. Likes",
-    stat_comments: "Avg. Comments",
-    stat_er: "Engagement Rate",
-    stat_freq: "Post Frequency",
-    stat_sub_likes: "Last {count} posts",
-    stat_sub_interaction: "Interaction",
-    stat_sub_consistency: "Consistency",
+    followers: "Подписчики",
+    following: "Подписки",
+    posts: "Посты",
+    stat_likes: "Ср. Лайки",
+    stat_comments: "Ср. Коммент.",
+    stat_er: "Вовлеченность (ER)",
+    stat_freq: "Частота постов",
+    stat_sub_likes: "Последние {count} постов",
+    stat_sub_interaction: "Взаимодействие",
+    stat_sub_consistency: "Стабильность",
     
     // DigitalCircle
-    circle_title: "Digital Circle (Близкие связи)",
-    badge_close: "Close",
-    badge_tagged: "Tagged",
-    badge_active: "Active",
+    circle_title: "Цифровой круг (Близкие связи)",
+    badge_close: "Близкие",
+    badge_tagged: "Отмечен",
+    badge_active: "Активен",
 
     // DigitalFootprint
-    footprint_title: "Digital Footprint & Context",
-    fp_locations: "Recent Locations",
-    fp_music: "Music Taste",
-    fp_circle: "Related Circle",
-    fp_strategy: "Strategy",
-    pinned_detected: "{count} Pinned Post(s) detected.",
-    high_priority: "High priority for analysis.",
+    footprint_title: "Цифровой след и контекст",
+    fp_locations: "Недавние локации",
+    fp_music: "Музыкальный вкус",
+    fp_circle: "Связанный круг",
+    fp_strategy: "Стратегия",
+    pinned_detected: "Обнаружено {count} закрепленных постов.",
+    high_priority: "Высокий приоритет для анализа.",
 
     // ChatWidget
     chat_intro: "Досье на @{username} загружено в память. Я готов ответить на вопросы по деталям фото, психотипу или помочь составить сообщение для контакта.",
@@ -58,9 +58,9 @@ export const translations = {
     chat_error: "Произошла ошибка связи с нейроядром (OpenRouter). Попробуйте еще раз.",
     
     // Buttons
-    btn_copy: "COPY RAW",
-    btn_pdf: "SAVE PDF",
-    btn_new: "NEW SCAN"
+    btn_copy: "КОПИРОВАТЬ",
+    btn_pdf: "СКАЧАТЬ PDF",
+    btn_new: "НОВЫЙ СКАН"
   },
   en: {
     // App.tsx
