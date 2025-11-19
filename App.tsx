@@ -176,6 +176,8 @@ const App: React.FC = () => {
           addToSearchHistory(currentData.username, currentData, analysis);
           
           setStep('result');
+          // Scroll to top when new analysis is ready
+          window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err: any) {
           console.error(err);
           setError(err.message || t('error_analysis'));
@@ -204,6 +206,8 @@ const App: React.FC = () => {
            setProfileData(item.profileData);
            setAnalysisResult(item.reportData);
            setStep('result');
+           // Scroll to top immediately to show the report header
+           window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
            // Re-run analysis if we only saved the username
            setUsername(item.username);
