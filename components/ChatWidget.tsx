@@ -46,7 +46,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
 
   // Auto-scroll
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages, isTyping]);
 
   const sendMessage = async (text: string) => {
@@ -193,22 +193,18 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
                             ? 'bg-cyber-900/80 border border-cyber-700/50 text-slate-200 rounded-tl-none' 
                             : 'bg-cyber-accent/10 border border-cyber-accent/20 text-cyan-50 rounded-tr-none'}
                     `}>
-                        {renderMessageText(msg.text)}
+                        {msg.text === "" && msg.role === 'model' ? (
+                             <div className="flex gap-1 h-5 items-center px-1">
+                                <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                                <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                             </div>
+                        ) : (
+                             renderMessageText(msg.text)
+                        )}
                     </div>
                 </div>
             ))}
-            {isTyping && (
-                    <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-cyber-900 border border-cyber-accent/50 text-cyber-accent flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 animate-spin-slow" />
-                    </div>
-                    <div className="bg-cyber-900/80 border border-cyber-700/50 p-4 rounded-2xl rounded-tl-none flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                        <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-1.5 h-1.5 bg-cyber-accent/50 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    </div>
-                    </div>
-            )}
             <div ref={messagesEndRef} />
         </div>
 
