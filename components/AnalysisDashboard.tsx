@@ -253,8 +253,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-out] pb-20 relative">
       <PrintStyles />
-      <ChatWidget profile={profile} report={analysis} />
-
+      
       {/* Top Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:border-gray-300">
         <div className="flex items-center gap-4">
@@ -403,55 +402,69 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           </div>
       )}
 
-      {/* Report Content */}
-      <div className="space-y-6">
-         {analysis.sections.map((section, idx) => {
-             const isWarn = isWarningSection(section.title.toUpperCase());
-             const isAct = isActionSection(section.title.toUpperCase());
-             const isInsight = isInsightSection(section.title.toUpperCase());
+      {/* Report Content & Chat */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+             {analysis.sections.map((section, idx) => {
+                 const isWarn = isWarningSection(section.title.toUpperCase());
+                 const isAct = isActionSection(section.title.toUpperCase());
+                 const isInsight = isInsightSection(section.title.toUpperCase());
 
-             return (
-                 <div 
-                    key={idx} 
-                    className={`
-                        rounded-xl p-6 border backdrop-blur-md transition-all duration-300 break-inside-avoid
-                        ${isWarn 
-                            ? 'bg-red-950/10 border-red-500/30 hover:border-red-500/50' 
-                            : isAct 
-                                ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent/50 shadow-[0_0_30px_rgba(34,211,238,0.05)]'
-                                : isInsight
-                                    ? 'bg-purple-900/10 border-purple-500/30 hover:border-purple-500/50'
-                                    : 'bg-cyber-800/20 border-cyber-700/30 hover:border-cyber-600'}
-                    `}
-                 >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-3">
-                            {isWarn && <AlertTriangle className="w-5 h-5 text-red-500" />}
-                            {isAct && <Terminal className="w-5 h-5 text-cyber-accent" />}
-                            {isInsight && <Lightbulb className="w-5 h-5 text-purple-400" />}
-                            
-                            <h2 className={`
-                                font-display font-bold text-lg tracking-wide uppercase
-                                ${isWarn ? 'text-red-400' : isAct ? 'text-cyber-accent' : isInsight ? 'text-purple-300' : 'text-white'}
-                                print:text-black
-                            `}>
-                                {section.title}
-                            </h2>
+                 return (
+                     <div 
+                        key={idx} 
+                        className={`
+                            rounded-xl p-6 border backdrop-blur-md transition-all duration-300 break-inside-avoid
+                            ${isWarn 
+                                ? 'bg-red-950/10 border-red-500/30 hover:border-red-500/50' 
+                                : isAct 
+                                    ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent/50 shadow-[0_0_30px_rgba(34,211,238,0.05)]'
+                                    : isInsight
+                                        ? 'bg-purple-900/10 border-purple-500/30 hover:border-purple-500/50'
+                                        : 'bg-cyber-800/20 border-cyber-700/30 hover:border-cyber-600'}
+                        `}
+                     >
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center gap-3">
+                                {isWarn && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                                {isAct && <Terminal className="w-5 h-5 text-cyber-accent" />}
+                                {isInsight && <Lightbulb className="w-5 h-5 text-purple-400" />}
+                                
+                                <h2 className={`
+                                    font-display font-bold text-lg tracking-wide uppercase
+                                    ${isWarn ? 'text-red-400' : isAct ? 'text-cyber-accent' : isInsight ? 'text-purple-300' : 'text-white'}
+                                    print:text-black
+                                `}>
+                                    {section.title}
+                                </h2>
+                            </div>
+                            <button 
+                                onClick={() => copyToClipboard(section.content, `sec-${idx}`)}
+                                className="text-slate-600 hover:text-cyber-accent transition-colors print:hidden"
+                            >
+                                {copiedSection === `sec-${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            </button>
                         </div>
-                        <button 
-                            onClick={() => copyToClipboard(section.content, `sec-${idx}`)}
-                            className="text-slate-600 hover:text-cyber-accent transition-colors print:hidden"
-                        >
-                            {copiedSection === `sec-${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                    </div>
 
-                    <div className="prose prose-invert prose-sm max-w-none font-sans text-slate-300 print:text-black">
-                        {renderMarkdown(section.content)}
-                    </div>
-                 </div>
-             );
-         })}
+                        <div className="prose prose-invert prose-sm max-w-none font-sans text-slate-300 print:text-black">
+                            {renderMarkdown(section.content)}
+                        </div>
+                     </div>
+                 );
+             })}
+          </div>
+
+          {/* Sidebar: Chat Widget (Sticky) - Desktop */}
+          <div className="hidden lg:block lg:col-span-1">
+              <div className="sticky top-24 space-y-6">
+                  <ChatWidget profile={profile} report={analysis} />
+              </div>
+          </div>
+      </div>
+      
+      {/* Mobile Chat Widget (Full Width at bottom) */}
+      <div className="lg:hidden mt-8">
+          <ChatWidget profile={profile} report={analysis} />
       </div>
 
     </div>

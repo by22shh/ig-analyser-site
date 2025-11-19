@@ -61,6 +61,10 @@ export const translations = {
     chat_intro: "Досье на @{username} загружено в память. Я готов ответить на вопросы по деталям фото, психотипу или помочь составить сообщение для контакта.",
     chat_placeholder: "Спроси о деталях или попроси совет...",
     chat_error: "Произошла ошибка связи с нейроядром (OpenRouter). Попробуйте еще раз.",
+    chat_chips_1: "Как начать разговор?",
+    chat_chips_2: "Оцени искренность",
+    chat_chips_3: "Психологический портрет",
+    chat_title: "AI Ассистент",
     
     // Buttons
     btn_copy: "КОПИРОВАТЬ",
@@ -127,6 +131,10 @@ export const translations = {
     chat_intro: "Dossier on @{username} loaded into memory. I am ready to answer questions about photo details, psychotype, or help draft a contact message.",
     chat_placeholder: "Ask about details or ask for advice...",
     chat_error: "Communication error with neural core (OpenRouter). Please try again.",
+    chat_chips_1: "How to start a conversation?",
+    chat_chips_2: "Rate sincerity",
+    chat_chips_3: "Psychological profile",
+    chat_title: "AI Assistant",
     
     // Buttons
     btn_copy: "COPY RAW",
