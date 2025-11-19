@@ -9,9 +9,22 @@ const SITE_URL = "https://zreti-app.netlify.app";
 const SITE_NAME = "ZRETI Instagram Analyzer";
 
 // MODEL CONFIGURATION
+// Мы разделяем модели для оптимизации скорости и качества (Speed vs Intelligence)
 
-const MODEL_VISION = "google/gemini-2.5-flash"; 
+// 1. VISION MODEL: Gemini 2.0 Flash
+// Используется для анализа изображений.
+// Почему: Самая быстрая мультимодальная модель. Отлично считывает детали, но работает быстро, что критично для пачки из 10-12 фото.
+const MODEL_VISION = "google/gemini-3-pro-preview"; 
+
+// 2. REASONING MODEL: Gemini 2.0 Pro (Experimental)
+// Используется для составления ГЛАВНОГО ОТЧЕТА.
+// Почему: Самый высокий IQ. Способна связать разрозненные факты в сложный психологический портрет.
 const MODEL_REASONING = "google/gemini-3-pro-preview"; 
+
+// 3. CHAT MODEL: Gemini 2.0 Pro (Experimental)
+// Используется для ЧАТА.
+// Почему: Для чата важен умный контекст, а не скорость ответов робота. Используем ту же мощную модель, что и для отчета.
+const MODEL_CHAT = "google/gemini-3-pro-preview";
 
 // --- UTILS ---
 
@@ -71,8 +84,8 @@ async function openRouterCompletion(
 
     for (let i = 0; i < maxRetries; i++) {
         const controller = new AbortController();
-        // Тайм-ауты: 25 сек для картинок (они легкие), 90 сек для большого отчета
-        const timeoutDuration = model === MODEL_VISION ? 25000 : 90000; 
+        // Тайм-ауты: 25 сек для картинок (они легкие), 90+ сек для большого отчета и умного чата
+        const timeoutDuration = model === MODEL_VISION ? 25000 : 120000; 
         const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
         try {
@@ -149,14 +162,14 @@ export const analyzeProfileWithGemini = async (
       const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
       
       await Promise.all(batch.map(async (post) => {
-          // Analyze Main Image
+          // Analyze Main Image -> Uses MODEL_VISION
           if (post.displayUrl) {
              await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
           }
           completedOperations++;
           if (onProgress) onProgress(completedOperations, totalOperations, 'images');
 
-          // Analyze One Carousel Image (Context) if available
+          // Analyze One Carousel Image (Context) if available -> Uses MODEL_VISION
           if (post.childPosts && post.childPosts.length > 1) {
               // Take the 2nd image (index 1) usually hidden from main view
               const hiddenImageUrl = post.childPosts[1]; 
@@ -208,6 +221,7 @@ export const analyzeProfileWithGemini = async (
   `;
 
   try {
+    // Uses MODEL_REASONING for the big report
     const reportText = await openRouterCompletion([
         { role: "system", content: PROFILE_ANALYSIS_PROMPT },
         { role: "user", content: combinedContext }
@@ -252,6 +266,7 @@ async function analyzeSingleImage(url: string, postId: string, label: string, re
     if (!base64) return;
 
     try {
+        // Uses MODEL_VISION for speed and multimodal capability
         const description = await openRouterCompletion([
             { role: "system", content: IMAGE_ANALYSIS_PROMPT },
             { 
@@ -302,10 +317,11 @@ export const createChatSession = (
 
             const controller = new AbortController();
             
-            // Chat responses should be fast
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            // Chat responses using Pro model might take longer than Flash, but we want quality.
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
 
             try {
+                // Uses MODEL_CHAT (Pro) for high intelligence interaction
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
                     headers: {
@@ -315,7 +331,7 @@ export const createChatSession = (
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: MODEL_REASONING, // Use the smart model for chat
+                        model: MODEL_CHAT, 
                         messages: history,
                         stream: true
                     }),
