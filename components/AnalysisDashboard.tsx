@@ -41,17 +41,25 @@ interface AnalysisDashboardProps {
 
 // Robust Avatar Component
 const ProfileAvatar = ({ src, alt, className }: { src: string, alt: string, className: string }) => {
-    const [imgSrc, setImgSrc] = useState(src);
-    const [retryCount, setRetryCount] = useState(0);
+    // Helper to generate safe proxy URL
+    // Instagram CDNs (fbcdn, cdninstagram) often block direct hotlinking or have CORS issues.
+    // We use wsrv.nl as a high-performance proxy to strip headers and resize.
+    const getProxyUrl = (url: string) => {
+        if (!url) return '';
+        // Check if it's already a data URL or local
+        if (url.startsWith('data:') || url.startsWith('/')) return url;
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&output=jpg`;
+    };
 
-    useEffect(() => { setImgSrc(src); setRetryCount(0); }, [src]);
+    const [imgSrc, setImgSrc] = useState(getProxyUrl(src) || src);
+
+    useEffect(() => {
+        setImgSrc(getProxyUrl(src) || src);
+    }, [src]);
 
     const handleError = () => {
-        if (retryCount === 0) {
-            setRetryCount(1);
-            setImgSrc(`https://wsrv.nl/?url=${encodeURIComponent(src)}&w=200&h=200&output=jpg`);
-        } else if (retryCount === 1) {
-            setRetryCount(2);
+        // Fallback to generated avatar if image fails to load
+        if (!imgSrc.includes('ui-avatars.com')) {
             setImgSrc(`https://ui-avatars.com/api/?name=${encodeURIComponent(alt)}&background=0f172a&color=22d3ee&size=200&bold=true&font-size=0.5`);
         }
     };
@@ -63,7 +71,7 @@ const ProfileAvatar = ({ src, alt, className }: { src: string, alt: string, clas
             className={className}
             onError={handleError}
             referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
+            loading="lazy"
         />
     );
 };
@@ -272,7 +280,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
             <ProfileAvatar 
               src={profile.profilePicUrl} 
               alt={profile.username} 
-              className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] print:shadow-none print:border-gray-400"
+              className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] print:shadow-none print:border-gray-400 object-cover"
             />
             <div>
                 <h1 className="text-2xl font-display font-bold text-white tracking-wide print:text-black">

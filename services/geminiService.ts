@@ -9,16 +9,18 @@ const SITE_URL = "https://zreti-app.netlify.app";
 const SITE_NAME = "ZRETI Instagram Analyzer";
 
 // MODEL CONFIGURATION
-const MODEL_VISION = "google/gemini-2.0-flash-001"; 
-const MODEL_REASONING = "google/gemini-3-pro-preview";
+// Используем Gemini 2.0 Flash для скорости и Gemini 2.0 Pro Experimental для глубины
+const MODEL_VISION = "google/gemini-2.5-flash"; 
+const MODEL_REASONING = "google/gemini-3-pro-preview"; 
 
 // --- UTILS ---
 
 const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд тайм-аут на загрузку картинки
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд жесткий лимит на картинку
 
   try {
+    // Используем wsrv.nl как надежный прокси для обхода 403 ошибок и ресайза
     const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800&q=80`; 
     const response = await fetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -69,8 +71,8 @@ async function openRouterCompletion(
 
     for (let i = 0; i < maxRetries; i++) {
         const controller = new AbortController();
-        // Увеличиваем тайм-аут для тяжелых моделей, но ставим предел
-        const timeoutDuration = model === MODEL_VISION ? 25000 : 60000; 
+        // Тайм-ауты: 25 сек для картинок (они легкие), 90 сек для большого отчета
+        const timeoutDuration = model === MODEL_VISION ? 25000 : 90000; 
         const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
         try {
@@ -104,11 +106,16 @@ async function openRouterCompletion(
             clearTimeout(timeoutId);
             console.warn(`Attempt ${i+1} failed: ${err.message}`);
             lastError = err;
+            
+            // Если это AbortError (тайм-аут), то это критично для UX, но мы попробуем еще раз
             if (err.name === 'AbortError') {
-                // Если тайм-аут, возможно стоит попробовать еще раз или просто пропустить
-                console.warn("Request timed out");
+                console.warn("Request timed out - retrying...");
             }
-            await delay(1000 * (i + 1)); 
+            
+            // Экспоненциальная задержка перед повтором
+            if (i < maxRetries - 1) {
+                 await delay(1000 * (i + 1)); 
+            }
         }
     }
 
@@ -125,10 +132,10 @@ export const analyzeProfileWithGemini = async (
 ): Promise<StrategicReport> => {
 
   // 1. VISUAL INTELLIGENCE STAGE
-  // We will look at up to 10 posts. If a post has childPosts (carousel), we might check the 2nd image too.
+  // Limit to 10 posts to avoid token limits and timeouts
   const postsToAnalyze = profileData.posts.slice(0, 10);
   let totalOperations = postsToAnalyze.length;
-  // Estimate extra operations for carousels
+  // Estimate extra operations for carousels (checking 2nd slide)
   postsToAnalyze.forEach(p => { if(p.childPosts && p.childPosts.length > 1) totalOperations++; });
 
   const imageAnalysisResults: string[] = [];
@@ -136,7 +143,7 @@ export const analyzeProfileWithGemini = async (
 
   if (onProgress) onProgress(0, totalOperations, 'images');
 
-  const BATCH_SIZE = 3; 
+  const BATCH_SIZE = 3; // Process 3 images in parallel
   
   for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
       const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
@@ -165,7 +172,7 @@ export const analyzeProfileWithGemini = async (
   // 2. STRATEGIC ANALYSIS STAGE
   if (onProgress) onProgress(totalOperations, totalOperations, 'final');
 
-  // Enrich context with metadata specifically
+  // Enrich context with metadata
   const metadataContext = profileData.posts.map(p => {
       return `
       POST ID: ${p.id}
@@ -231,7 +238,7 @@ export const analyzeProfileWithGemini = async (
     console.error("Critical Strategy Generation Error:", error);
     return {
         rawText: `Error: ${error.message}`,
-        sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter." }],
+        sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter. Please check logs." }],
         visionAnalysis: imageAnalysisResults
     };
   }
@@ -293,62 +300,71 @@ export const createChatSession = (
 
             history.push({ role: "user", content: userMessage });
 
-            // Use fetch with abort controller for streaming too
             const controller = new AbortController();
             
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                    "HTTP-Referer": SITE_URL,
-                    "X-Title": SITE_NAME,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: MODEL_REASONING,
-                    messages: history,
-                    stream: true
-                }),
-                signal: controller.signal
-            });
-
-            if (!response.body) throw new Error("No response body");
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-            let fullBotResponse = "";
+            // Chat responses should be fast
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
             try {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                        "HTTP-Referer": SITE_URL,
+                        "X-Title": SITE_NAME,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: MODEL_REASONING, // Use the smart model for chat
+                        messages: history,
+                        stream: true
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
 
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split("\n");
-                    buffer = lines.pop() || ""; 
+                if (!response.body) throw new Error("No response body");
 
-                    for (const line of lines) {
-                        if (line.trim() === "") continue;
-                        if (line.trim() === "data: [DONE]") continue;
-                        
-                        if (line.startsWith("data: ")) {
-                            try {
-                                const json = JSON.parse(line.substring(6));
-                                const content = json.choices[0]?.delta?.content;
-                                if (content) {
-                                    fullBotResponse += content;
-                                    yield content;
-                                }
-                            } catch (e) { }
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
+                let fullBotResponse = "";
+
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split("\n");
+                        buffer = lines.pop() || ""; 
+
+                        for (const line of lines) {
+                            if (line.trim() === "") continue;
+                            if (line.trim() === "data: [DONE]") continue;
+                            
+                            if (line.startsWith("data: ")) {
+                                try {
+                                    const json = JSON.parse(line.substring(6));
+                                    const content = json.choices[0]?.delta?.content;
+                                    if (content) {
+                                        fullBotResponse += content;
+                                        yield content;
+                                    }
+                                } catch (e) { }
+                            }
                         }
                     }
+                } finally {
+                    if (fullBotResponse) {
+                        history.push({ role: "assistant", content: fullBotResponse });
+                    }
+                    reader.releaseLock();
                 }
-            } finally {
-                if (fullBotResponse) {
-                    history.push({ role: "assistant", content: fullBotResponse });
-                }
-                reader.releaseLock();
+            } catch (err) {
+                clearTimeout(timeoutId);
+                throw err;
             }
         }
     };
