@@ -286,8 +286,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:break-inside-avoid">
-          <div className="lg:col-span-2 bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
+      <div className="grid grid-cols-1 gap-6 print:break-inside-avoid">
+          <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
                <div className="flex items-center gap-2 mb-4">
                     <BarChart3 className="w-4 h-4 text-cyber-accent" />
                     <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Activity Matrix</h3>
@@ -301,32 +301,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                         <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
                         <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
                     </BarChart>
-                  </ResponsiveContainer>
-               </div>
-          </div>
-           <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
-               <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-4 h-4 text-cyber-purple" />
-                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">ER Trend</h3>
-               </div>
-               <div className="h-[200px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                        <XAxis dataKey="date" hide />
-                        {/* Fix: Start Y axis from 0 to avoid "flying" lines, but let it grow automatically */}
-                        <YAxis hide domain={[0, 'auto']} padding={{ top: 50, bottom: 10 }} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line 
-                            type="monotone" 
-                            dataKey="er" 
-                            stroke="#a855f7" 
-                            strokeWidth={3} 
-                            dot={{fill: '#a855f7', r: 4, strokeWidth: 0}} 
-                            activeDot={{r: 6, fill: '#fff'}} 
-                            isAnimationActive={true}
-                        />
-                    </LineChart>
                   </ResponsiveContainer>
                </div>
           </div>
