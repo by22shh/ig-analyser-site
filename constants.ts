@@ -11,7 +11,11 @@ export const MOCK_PROFILE: InstagramProfile = {
   profilePicUrl: "https://picsum.photos/200/200",
   isVerified: false,
   externalUrl: "https://alex.dev",
-  posts: []
+  posts: [],
+  relatedProfiles: [
+      { username: "elonmusk", fullName: "Elon Musk", isVerified: true },
+      { username: "naval", fullName: "Naval Ravikant", isVerified: true }
+  ]
 };
 
 export const IMAGE_ANALYSIS_PROMPT = `

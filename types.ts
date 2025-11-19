@@ -8,16 +8,31 @@ export interface InstagramComment {
 
 export interface InstagramPost {
   id: string;
-  type: 'Image' | 'Video' | 'Carousel';
+  type: 'Image' | 'Video' | 'Carousel' | 'Sidecar';
   caption: string;
   hashtags: string[];
   mentions: string[];
   likesCount: number;
   commentsCount: number;
-  latestComments: InstagramComment[]; // New field for text analysis
+  latestComments: InstagramComment[]; 
   timestamp: string;
   displayUrl: string;
   videoViewCount?: number;
+  videoDuration?: number;
+  
+  // Rich Metadata
+  location?: {
+    name: string;
+    id?: string;
+  };
+  isPinned: boolean;
+  productType?: string; // 'clips', 'feed', 'igtv'
+  musicInfo?: {
+    artist: string;
+    song: string;
+  };
+  childPosts?: string[]; // URLs of images in a carousel
+  taggedUsers?: string[];
 }
 
 export interface InstagramProfile {
@@ -31,6 +46,14 @@ export interface InstagramProfile {
   posts: InstagramPost[];
   externalUrl?: string;
   isVerified: boolean;
+  
+  // Rich Metadata
+  relatedProfiles?: {
+    username: string;
+    fullName: string;
+    isVerified: boolean;
+  }[];
+  
   _rawDebug?: any;
 }
 
@@ -38,5 +61,5 @@ export interface InstagramProfile {
 export interface StrategicReport {
   rawText: string;
   sections: { title: string; content: string }[];
-  visionAnalysis: string[]; // New field to store image descriptions for the chat context
+  visionAnalysis: string[]; 
 }

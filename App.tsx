@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
@@ -7,20 +7,17 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 
 // Environment Variables
-const APIFY_TOKEN = (import.meta as any).env?.VITE_APIFY_TOKEN || "";
+// Using process.env because we polyfilled/defined it in vite.config.ts
+const APIFY_TOKEN = process.env.VITE_APIFY_TOKEN || "";
 
 // --- VISUAL EFFECTS ---
 
 const CyberBackground = () => (
   <div className="fixed inset-0 z-0 overflow-hidden bg-[#020617]"> 
     {/* Base: Rich Dark Blue/Slate */}
-    
-    {/* 1. Vibrant Nebulas (Background Glow) */}
     <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen pointer-events-none"></div>
     <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] bg-cyan-500/20 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen pointer-events-none"></div>
     <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse pointer-events-none"></div>
-
-    {/* 2. 3D Perspective Grid - High Visibility */}
     <div className="absolute bottom-[-10%] left-[-50%] right-[-50%] h-[100%] 
         bg-[linear-gradient(to_right,rgba(6,182,212,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.15)_1px,transparent_1px)] 
         bg-[size:60px_60px] 
@@ -30,8 +27,6 @@ const CyberBackground = () => (
         pointer-events-none 
         z-0">
     </div>
-    
-    {/* 3. Brighter Digital Rain */}
     <div className="absolute inset-0 flex justify-evenly opacity-50 pointer-events-none z-0">
         {[...Array(12)].map((_, i) => (
             <div key={i} className="w-px h-full bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent relative overflow-hidden">
@@ -46,16 +41,12 @@ const CyberBackground = () => (
             </div>
         ))}
     </div>
-
-    {/* 4. Noise Texture Overlay */}
     <div className="absolute inset-0 z-0 opacity-30 mix-blend-overlay" 
          style={{ 
             backgroundImage: 'radial-gradient(circle at center, transparent 0%, #020617 100%)',
             backgroundSize: '100% 100%' 
          }}>
     </div>
-    
-    {/* 5. Scanlines */}
     <div className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] opacity-20"></div>
   </div>
 );
@@ -63,18 +54,12 @@ const CyberBackground = () => (
 const AiCoreVisual = () => (
   <div className="relative w-56 h-56 mx-auto mb-12 group pointer-events-none select-none">
     <div className="absolute inset-0 bg-cyan-500/30 rounded-full blur-[50px] animate-pulse-slow"></div>
-    
-    {/* Concentric Rings */}
     <div className="absolute inset-0 border border-cyan-400/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
     <div className="absolute inset-0 border-t-2 border-cyan-400 rounded-full animate-[spin_10s_linear_infinite] shadow-[0_0_15px_rgba(34,211,238,0.5)]"></div>
-    
     <div className="absolute inset-4 border border-indigo-500/30 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
     <div className="absolute inset-4 border-r-2 border-indigo-400 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
-    
     <div className="absolute inset-8 border border-cyan-300/20 rounded-full animate-[spin_4s_linear_infinite]"></div>
     <div className="absolute inset-8 border-b-2 border-cyan-300 rounded-full animate-[spin_4s_linear_infinite]"></div>
-
-    {/* Center Eye */}
     <div className="absolute inset-[3.5rem] bg-[#0f172a]/90 backdrop-blur-md rounded-full border-2 border-cyan-500 flex items-center justify-center z-10 shadow-[0_0_40px_rgba(34,211,238,0.4)]">
         <div className="relative">
             <Eye className="w-12 h-12 text-cyan-400 animate-pulse" />
@@ -99,16 +84,13 @@ const App: React.FC = () => {
   const [profileData, setProfileData] = useState<InstagramProfile | null>(null);
   const [analysisResult, setAnalysisResult] = useState<StrategicReport | null>(null);
 
-  // Simulated progress for Stage 3 (Deep Analysis) since it's a waiting game
+  // Simulated progress for Stage 3
   useEffect(() => {
     let interval: any;
     if (step === 'loading' && loadingStage === 3) {
-        // Reset progress for this stage start if not set
         setLoadingProgress(prev => (prev === 100 ? 0 : prev));
-        
         interval = setInterval(() => {
             setLoadingProgress(prev => {
-                // Asymptotic approach to 98%
                 const increment = Math.max(0.5, (98 - prev) / 50); 
                 return prev >= 98 ? 98 : prev + increment;
             });
@@ -117,72 +99,94 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [step, loadingStage]);
 
-  const handleAnalyze = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate Environment Variables
-    if (!APIFY_TOKEN) {
-        setError("Ошибка: Не найден VITE_APIFY_TOKEN. Проверьте .env файл.");
-        return;
-    }
-
-    if (!username) return;
-    
-    setError(null);
-    setStep('loading');
-    setLoadingStage(1);
-    setLoadingProgress(25); // Fake initial progress for Apify connection
-    setLoadingMessage("Инициализация соединения... Поиск профиля...");
-
-    let cleanUsername = username.trim();
-    if (cleanUsername.includes('instagram.com/')) {
-        const parts = cleanUsername.split('instagram.com/');
-        if (parts[1]) cleanUsername = parts[1].split('/')[0].split('?')[0];
-    }
-    cleanUsername = cleanUsername.replace('@', '').replace(/\s/g, '');
-
-    try {
-      const data = await fetchInstagramData(cleanUsername, APIFY_TOKEN);
-      setProfileData(data);
+  // Orchestrates the analysis process.
+  // Can start from scratch (fetch + analyze) or from existing data (analyze only).
+  const startAnalysisFlow = async (inputUsername?: string, existingData?: InstagramProfile) => {
+      setError(null);
+      setStep('loading');
       
-      // Completed Stage 1
-      setLoadingProgress(100);
-      await new Promise(r => setTimeout(r, 400)); // Brief visual pause
+      let currentData = existingData;
 
-      // Start Stage 2
+      // PHASE 1: Fetch Data (if needed)
+      if (!currentData && inputUsername) {
+          setLoadingStage(1);
+          setLoadingProgress(10);
+          setLoadingMessage("Инициализация соединения... Поиск профиля...");
+
+          let cleanUsername = inputUsername.trim();
+          if (cleanUsername.includes('instagram.com/')) {
+              const parts = cleanUsername.split('instagram.com/');
+              if (parts[1]) cleanUsername = parts[1].split('/')[0].split('?')[0];
+          }
+          cleanUsername = cleanUsername.replace('@', '').replace(/\s/g, '');
+
+          try {
+              if (!APIFY_TOKEN) throw new Error("Ошибка: Не найден VITE_APIFY_TOKEN.");
+              currentData = await fetchInstagramData(cleanUsername, APIFY_TOKEN);
+              setProfileData(currentData);
+              setLoadingProgress(100);
+              await new Promise(r => setTimeout(r, 400));
+          } catch (err: any) {
+              console.error(err);
+              setError(err.message || "Ошибка сбора данных.");
+              setStep('input');
+              return;
+          }
+      }
+
+      if (!currentData) {
+          setError("Системная ошибка: Данные профиля отсутствуют.");
+          setStep('input');
+          return;
+      }
+
+      // PHASE 2 & 3: AI Analysis
       setLoadingStage(2);
       setLoadingProgress(0);
       setLoadingMessage("Загрузка медиа-контента для анализа...");
 
-      const analysis = await analyzeProfileWithGemini(data, (current, total, stage) => {
-         if (stage === 'images') {
-            const percentage = Math.round((current / total) * 100);
-            setLoadingProgress(percentage);
-            setLoadingMessage(`Сканирование визуальных паттернов: обработано ${current} из ${total}`);
-         } else if (stage === 'final') {
-            // Transition to Stage 3
-            setLoadingStage(3);
-            setLoadingProgress(0); // Will be handled by useEffect
-            setLoadingMessage(`Формирование стратегического досье... Это может занять несколько минут.`);
-         }
-      });
-      
-      setAnalysisResult(analysis);
-      setStep('result');
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Произошла ошибка анализа.");
-      setStep('input');
-    }
+      try {
+          const analysis = await analyzeProfileWithGemini(currentData, (current, total, stage) => {
+            if (stage === 'images') {
+                const percentage = Math.round((current / total) * 100);
+                setLoadingProgress(percentage);
+                setLoadingMessage(`Сканирование визуальных паттернов: обработано ${current} из ${total}`);
+            } else if (stage === 'final') {
+                setLoadingStage(3);
+                setLoadingProgress(0);
+                setLoadingMessage(`Формирование стратегического досье...`);
+            }
+          });
+          
+          setAnalysisResult(analysis);
+          setStep('result');
+      } catch (err: any) {
+          console.error(err);
+          setError(err.message || "Ошибка анализа данных.");
+          // Keep profile data in state so user can retry just the analysis part
+          setStep('input');
+      }
+  };
+
+  const handleAnalyzeClick = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username) return;
+    // Clear previous data to start fresh
+    setProfileData(null);
+    setAnalysisResult(null);
+    startAnalysisFlow(username);
+  };
+
+  const handleRetryAnalysis = () => {
+      if (profileData) {
+          startAnalysisFlow(undefined, profileData);
+      }
   };
 
   return (
     <div className="min-h-screen w-full text-slate-200 relative overflow-x-hidden selection:bg-cyan-400 selection:text-black font-sans bg-black/0">
-      
-      {/* Full Screen Animated Background - Fixed Z-Index Issue */}
       <CyberBackground />
 
-      {/* Nav */}
       <nav className="w-full border-b border-white/10 bg-[#0f172a]/60 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -198,8 +202,6 @@ const App: React.FC = () => {
         
         {step === 'input' && (
             <div className="w-full max-w-2xl animate-[fadeIn_0.8s_ease-out] relative">
-                
-                {/* AI Animation Core */}
                 <AiCoreVisual />
 
                 <div className="text-center mb-12 relative z-20">
@@ -214,10 +216,9 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="bg-[#0f172a]/80 border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group transition-all hover:border-cyan-500/50 hover:shadow-[0_0_50px_rgba(34,211,238,0.1)]">
-                    {/* Subtle Scanning Line behind form */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[shimmer_2s_infinite]"></div>
                     
-                    <form onSubmit={handleAnalyze} className="space-y-6 relative z-20">
+                    <form onSubmit={handleAnalyzeClick} className="space-y-6 relative z-20">
                         <div>
                             <label className="flex justify-between text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2 font-mono">
                                 <span>Target Identifier</span>
@@ -238,20 +239,36 @@ const App: React.FC = () => {
                         </div>
 
                         {error && (
-                            <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                [ERROR]: {error}
+                            <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
+                                <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                    <span>[ERROR]: {error}</span>
+                                </div>
+                                
+                                {/* Retry Action Logic */}
+                                {profileData && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRetryAnalysis}
+                                        className="w-full bg-cyber-800 hover:bg-cyber-700 border border-cyber-accent/30 text-cyber-accent py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-mono text-xs uppercase tracking-wider"
+                                    >
+                                        <RefreshCw className="w-4 h-4" />
+                                        Повторить анализ (данные уже загружены)
+                                    </button>
+                                )}
                             </div>
                         )}
 
-                        <button 
-                            type="submit" 
-                            className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20"
-                        >
-                            <span className="flex items-center gap-2 text-lg">
-                                Запустить Анализ <Search className="w-5 h-5" />
-                            </span>
-                        </button>
+                        {!profileData && (
+                            <button 
+                                type="submit" 
+                                className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20"
+                            >
+                                <span className="flex items-center gap-2 text-lg">
+                                    Запустить Анализ <Search className="w-5 h-5" />
+                                </span>
+                            </button>
+                        )}
                     </form>
                 </div>
             </div>

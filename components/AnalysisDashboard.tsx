@@ -11,7 +11,15 @@ import {
   Activity,
   MessageCircle,
   Heart,
-  Calendar
+  Calendar,
+  RefreshCw,
+  AlertTriangle,
+  Lightbulb,
+  Terminal,
+  MapPin,
+  Music,
+  Users,
+  Pin
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -91,26 +99,85 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// --- PRINT STYLES ---
+// --- MARKDOWN RENDERER ---
+
+const renderMarkdown = (text: string) => {
+    const lines = text.split('\n');
+    const renderedElements: React.ReactNode[] = [];
+    let currentList: React.ReactNode[] = [];
+
+    const processInlineStyles = (str: string) => {
+        const parts = str.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
+            }
+            if (part.startsWith('*') && part.endsWith('*')) {
+                return <em key={i} className="italic text-slate-300 print:text-slate-700">{part.slice(1, -1)}</em>;
+            }
+            return part;
+        });
+    };
+
+    lines.forEach((line, index) => {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || (trimmed.startsWith('* ') && !trimmed.endsWith('*'))) {
+            const content = trimmed.replace(/^[-•*]\s+/, '');
+            currentList.push(
+                <li key={`li-${index}`} className="ml-5 pl-1 text-slate-300 list-disc marker:text-cyber-accent/70 print:text-slate-800 print:marker:text-black">
+                    {processInlineStyles(content)}
+                </li>
+            );
+        } 
+        else if (trimmed.startsWith('###')) {
+            if (currentList.length > 0) {
+                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+                currentList = [];
+            }
+            renderedElements.push(
+                <h4 key={`h4-${index}`} className="font-display font-bold text-cyber-accent mt-4 mb-2 text-md print:text-black uppercase">
+                    {trimmed.replace(/###\s*/, '')}
+                </h4>
+            );
+        }
+        else {
+            if (currentList.length > 0) {
+                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+                currentList = [];
+            }
+            
+            if (trimmed.length === 0) {
+                renderedElements.push(<div key={`br-${index}`} className="h-2" />);
+            } else {
+                renderedElements.push(
+                    <p key={`p-${index}`} className="mb-2 leading-relaxed text-slate-300 print:text-slate-800">
+                        {processInlineStyles(line)}
+                    </p>
+                );
+            }
+        }
+    });
+
+    if (currentList.length > 0) {
+        renderedElements.push(<ul key={`ul-end`} className="mb-3 space-y-1">{currentList}</ul>);
+    }
+
+    return renderedElements;
+};
+
 const PrintStyles = () => (
   <style>{`
     @media print {
       @page { margin: 1.5cm; size: auto; }
-      
       body {
         background-color: white !important;
         background-image: none !important;
         color: black !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
       }
-
-      /* Hide UI elements */
       nav, button, .fixed, .animate-pulse, .group-hover\\:opacity-100, .no-print {
         display: none !important;
       }
-
-      /* Reset Container Layouts */
       #root, main, .min-h-screen, .relative {
         position: static !important;
         overflow: visible !important;
@@ -121,54 +188,23 @@ const PrintStyles = () => (
         margin: 0 !important;
         padding: 0 !important;
         transform: none !important;
-        perspective: none !important;
       }
-
-      /* Ensure Chart Container is visible but clean */
-      .bg-cyber-800\\/20 {
+      .bg-cyber-800\\/20, .bg-cyber-800\\/40 {
         background: white !important;
         border: 1px solid #ddd !important;
       }
-
-      /* Typography */
       .text-slate-200, .text-slate-300, .text-slate-400, .text-white {
-        color: #1f2937 !important; /* Slate-800 */
+        color: #1f2937 !important; 
       }
       .text-cyber-accent {
-        color: #0e7490 !important; /* Cyan-700 - darker for print visibility */
+        color: #0e7490 !important; 
       }
-      .text-cyber-purple {
-        color: #7e22ce !important; /* Purple-700 */
-      }
-      .text-red-400, .text-red-950 {
-         color: #b91c1c !important;
-         background: none !important;
-         border-color: #fca5a5 !important;
-      }
-
-      /* Analysis Sections */
       .rounded-xl {
         border: 1px solid #e5e7eb !important;
         background: white !important;
         box-shadow: none !important;
         margin-bottom: 20px !important;
         break-inside: avoid !important;
-      }
-
-      /* Gradients removal */
-      .bg-gradient-to-r, .bg-gradient-to-bl {
-        background: none !important;
-      }
-
-      /* Charts overrides */
-      .recharts-cartesian-grid line {
-        stroke: #e5e7eb !important;
-      }
-      .recharts-text {
-        fill: #374151 !important;
-      }
-      .recharts-default-tooltip {
-        display: none !important;
       }
     }
   `}</style>
@@ -194,12 +230,10 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const avgLikes = posts.length ? Math.round(totalLikes / posts.length) : 0;
   const avgComments = posts.length ? Math.round(totalComments / posts.length) : 0;
   
-  // Engagement Rate (approximate based on followers)
   const er = profile.followersCount > 0 
     ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2) 
     : "0";
 
-  // Chart Data (Reverse to show oldest -> newest left to right)
   const chartData = [...posts].reverse().map((post) => ({
     date: new Date(post.timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
     likes: post.likesCount,
@@ -207,7 +241,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
     er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
   }));
 
-  // Frequency Calculation
+  // --- EXTRACTION OF RICH DATA ---
+  const uniqueLocations = Array.from(new Set(posts.map(p => p.location?.name).filter(Boolean))) as string[];
+  const uniqueMusic = Array.from(new Set(posts.map(p => p.musicInfo ? `${p.musicInfo.artist} - ${p.musicInfo.song}` : null).filter(Boolean))) as string[];
+  const pinnedPostsCount = posts.filter(p => p.isPinned).length;
+  
+  const relatedProfiles = profile.relatedProfiles?.slice(0, 5) || [];
+
   let frequency = "Н/Д";
   if (posts.length > 1) {
     const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
@@ -217,7 +257,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
     frequency = avgDays === 0 ? "Ежедневно" : `Раз в ${avgDays} дн.`;
   }
 
-  // Identifying special sections for highlighting
   const isWarningSection = (title: string) => title.includes("ОШИБКИ") || title.includes("БАРЬЕРЫ") || title.includes("ОТСУТСТВИЯ");
   const isActionSection = (title: string) => title.includes("ФРАЗЫ") || title.includes("ТРИГГЕРЫ") || title.includes("РЕКОМЕНДАЦИИ");
   const isInsightSection = (title: string) => title.includes("НЕОЧЕВИДНЫЕ") || title.includes("ПАТТЕРНЫ");
@@ -225,11 +264,9 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-out] pb-20 relative">
       <PrintStyles />
-      
-      {/* Chat Widget Integration */}
       <ChatWidget profile={profile} report={analysis} />
 
-      {/* Top Bar: Dossier Header */}
+      {/* Top Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:border-gray-300">
         <div className="flex items-center gap-4">
             <ProfileAvatar 
@@ -249,134 +286,209 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
         </div>
 
         <div className="flex gap-2 no-print">
-            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent border border-cyber-700 rounded text-xs font-mono transition">
-                <Download className="w-4 h-4" /> EXPORT PDF
-            </button>
-            <button onClick={onReset} className="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 rounded text-xs font-mono transition">
-                НОВЫЙ ПОИСК
-            </button>
-        </div>
-      </div>
-
-      {/* --- VISUAL INTELLIGENCE BLOCK --- */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard 
-          label="Вовлеченность (ER)" 
-          value={`${er}%`} 
-          subValue="Средний показатель"
-          icon={Activity} 
-        />
-        <StatCard 
-          label="Средние Лайки" 
-          value={avgLikes.toLocaleString()} 
-          subValue={`Всего: ${totalLikes.toLocaleString()}`}
-          icon={Heart} 
-        />
-        <StatCard 
-          label="Средние Комментарии" 
-          value={avgComments.toLocaleString()} 
-          subValue={`Всего: ${totalComments.toLocaleString()}`}
-          icon={MessageCircle} 
-        />
-         <StatCard 
-          label="Частота публикаций" 
-          value={frequency} 
-          subValue="На основе последних 10"
-          icon={Calendar} 
-        />
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:block print:space-y-6">
-        
-        {/* Volume Chart */}
-        <div className="bg-cyber-800/20 border border-cyber-700/50 p-6 rounded-xl backdrop-blur-sm print:break-inside-avoid">
-            <h3 className="text-sm font-display font-bold text-slate-300 mb-6 flex items-center gap-2 print:text-black">
-                <BarChart3 className="w-4 h-4 text-cyber-accent print:text-black" />
-                ДИНАМИКА РЕАКЦИЙ (ПОСЛЕДНИЕ 10)
-            </h3>
-            <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{fill: '#334155', opacity: 0.2}} />
-                        <Bar dataKey="likes" name="Лайки" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Bar dataKey="comments" name="Комментарии" fill="#ec4899" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-
-        {/* Engagement Trend */}
-        <div className="bg-cyber-800/20 border border-cyber-700/50 p-6 rounded-xl backdrop-blur-sm print:break-inside-avoid">
-            <h3 className="text-sm font-display font-bold text-slate-300 mb-6 flex items-center gap-2 print:text-black">
-                <Activity className="w-4 h-4 text-cyber-purple print:text-black" />
-                ТРЕНД ВОВЛЕЧЕННОСТИ (%)
-            </h3>
-            <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey="er" name="ER %" stroke="#a855f7" strokeWidth={3} dot={{fill: '#a855f7', r: 4}} activeDot={{r: 6, stroke: '#fff'}} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-      </div>
-
-      <div className="h-px bg-gradient-to-r from-transparent via-cyber-700 to-transparent w-full my-8 opacity-50 print:hidden"></div>
-
-      {/* --- TEXT REPORT CONTENT --- */}
-      <div className="grid grid-cols-1 gap-6">
-        {analysis.sections.map((section, idx) => (
-            <div 
-                key={idx} 
-                className={`
-                    group relative p-6 rounded-xl border backdrop-blur-sm transition-all duration-300 print:break-inside-avoid
-                    ${isWarningSection(section.title) 
-                        ? 'bg-red-950/10 border-red-900/30 hover:border-red-500/50' 
-                        : isActionSection(section.title)
-                            ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent shadow-[0_0_20px_rgba(34,211,238,0.05)]'
-                            : 'bg-cyber-800/20 border-cyber-700/50 hover:border-slate-500'
-                    }
-                `}
+             <button 
+                onClick={() => copyToClipboard(analysis.rawText, 'full')}
+                className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
             >
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className={`
-                        font-display font-bold text-lg uppercase tracking-wider
-                        ${isWarningSection(section.title) ? 'text-red-400' : isActionSection(section.title) ? 'text-cyber-accent' : 'text-white'}
-                    `}>
-                        {section.title}
-                    </h3>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity no-print">
+               {copiedSection === 'full' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+               <span className="text-xs font-bold hidden md:inline">COPY RAW</span>
+            </button>
+            <button 
+                onClick={handlePrint}
+                className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
+            >
+               <Download className="w-4 h-4" />
+               <span className="text-xs font-bold hidden md:inline">SAVE PDF</span>
+            </button>
+             <button 
+                onClick={onReset}
+                className="p-2 bg-red-950/50 hover:bg-red-900/50 text-red-400 rounded border border-red-900/50 transition-colors flex items-center gap-2"
+            >
+               <RefreshCw className="w-4 h-4" />
+               <span className="text-xs font-bold hidden md:inline">NEW SCAN</span>
+            </button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Avg. Likes" value={avgLikes.toLocaleString()} subValue="Last 10 posts" icon={Heart} />
+        <StatCard label="Avg. Comments" value={avgComments.toLocaleString()} subValue="Interaction" icon={MessageCircle} />
+        <StatCard label="Engagement Rate" value={`${er}%`} subValue={parseFloat(er) > 3 ? "High" : "Avg"} icon={Activity} />
+        <StatCard label="Post Frequency" value={frequency} subValue="Consistency" icon={Calendar} />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:break-inside-avoid">
+          <div className="lg:col-span-2 bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
+               <div className="flex items-center gap-2 mb-4">
+                    <BarChart3 className="w-4 h-4 text-cyber-accent" />
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Activity Matrix</h3>
+               </div>
+               <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34,211,238,0.05)'}} />
+                        <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+               </div>
+          </div>
+           <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
+               <div className="flex items-center gap-2 mb-4">
+                    <Activity className="w-4 h-4 text-cyber-purple" />
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">ER Trend</h3>
+               </div>
+               <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                        <XAxis dataKey="date" hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line type="monotone" dataKey="er" stroke="#a855f7" strokeWidth={2} dot={{fill: '#a855f7', r: 3}} activeDot={{r: 5, fill: '#fff'}} />
+                    </LineChart>
+                  </ResponsiveContainer>
+               </div>
+          </div>
+      </div>
+
+      {/* Digital Footprint Section (New) */}
+      {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
+          <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
+             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-green-500" /> Digital Footprint & Context
+             </h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                {uniqueLocations.length > 0 && (
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                            <MapPin className="w-3 h-3" /> Recent Locations
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {uniqueLocations.slice(0, 5).map((loc, i) => (
+                                <span key={i} className="bg-cyber-800/50 border border-cyber-700/50 text-slate-300 text-[10px] px-2 py-1 rounded">
+                                    {loc}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {uniqueMusic.length > 0 && (
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                            <Music className="w-3 h-3" /> Music Taste
+                        </div>
+                        <ul className="space-y-1">
+                            {uniqueMusic.slice(0, 3).map((track, i) => (
+                                <li key={i} className="text-[10px] text-slate-300 truncate max-w-[200px]">
+                                    ♪ {track}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {relatedProfiles.length > 0 && (
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                            <Users className="w-3 h-3" /> Related Circle
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                             {relatedProfiles.map((rp, i) => (
+                                <span key={i} className="text-[10px] text-slate-300 bg-cyber-800/30 px-2 py-0.5 rounded border border-white/5">
+                                    @{rp.username}
+                                </span>
+                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {pinnedPostsCount > 0 && (
+                     <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                            <Pin className="w-3 h-3" /> Strategy
+                        </div>
+                        <div className="text-sm text-white font-mono">
+                            {pinnedPostsCount} Pinned Post(s) detected.
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-1">
+                            High priority for analysis.
+                        </div>
+                    </div>
+                )}
+             </div>
+          </div>
+      )}
+
+      {/* Report Content */}
+      <div className="space-y-6">
+         {analysis.sections.map((section, idx) => {
+             const isWarn = isWarningSection(section.title.toUpperCase());
+             const isAct = isActionSection(section.title.toUpperCase());
+             const isInsight = isInsightSection(section.title.toUpperCase());
+
+             return (
+                 <div 
+                    key={idx} 
+                    className={`
+                        rounded-xl p-6 border backdrop-blur-md transition-all duration-300 break-inside-avoid
+                        ${isWarn 
+                            ? 'bg-red-950/10 border-red-500/30 hover:border-red-500/50' 
+                            : isAct 
+                                ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent/50 shadow-[0_0_30px_rgba(34,211,238,0.05)]'
+                                : isInsight
+                                    ? 'bg-purple-900/10 border-purple-500/30 hover:border-purple-500/50'
+                                    : 'bg-cyber-800/20 border-cyber-700/30 hover:border-cyber-600'}
+                    `}
+                 >
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                            {isWarn && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                            {isAct && <Terminal className="w-5 h-5 text-cyber-accent" />}
+                            {isInsight && <Lightbulb className="w-5 h-5 text-purple-400" />}
+                            
+                            <h2 className={`
+                                font-display font-bold text-lg tracking-wide uppercase
+                                ${isWarn ? 'text-red-400' : isAct ? 'text-cyber-accent' : isInsight ? 'text-purple-300' : 'text-white'}
+                                print:text-black
+                            `}>
+                                {section.title}
+                            </h2>
+                        </div>
                         <button 
-                            onClick={() => copyToClipboard(section.content, idx.toString())}
-                            className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white"
-                            title="Copy text"
+                            onClick={() => copyToClipboard(section.content, `sec-${idx}`)}
+                            className="text-slate-600 hover:text-cyber-accent transition-colors print:hidden"
                         >
-                            {copiedSection === idx.toString() ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                            {copiedSection === `sec-${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </button>
                     </div>
-                </div>
 
-                {/* Content */}
-                <div className="prose prose-invert prose-sm max-w-none font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
-                    {section.content}
-                </div>
-
-                {/* Decorators */}
-                {isInsightSection(section.title) && (
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-yellow-500/10 to-transparent pointer-events-none rounded-tr-xl print:hidden"></div>
-                )}
-            </div>
-        ))}
+                    <div className="prose prose-invert prose-sm max-w-none font-sans text-slate-300 print:text-black">
+                        {renderMarkdown(section.content)}
+                    </div>
+                 </div>
+             );
+         })}
       </div>
+
+      {analysis.visionAnalysis && analysis.visionAnalysis.length > 0 && (
+        <div className="mt-12 border-t border-cyber-800 pt-8 no-print">
+            <details className="group">
+                <summary className="flex items-center gap-2 cursor-pointer text-slate-500 hover:text-cyber-accent transition-colors list-none">
+                    <Terminal className="w-4 h-4" />
+                    <span className="text-xs font-mono uppercase tracking-widest">System Logs: Visual Intelligence Data</span>
+                </summary>
+                <div className="mt-4 bg-black/50 rounded-lg p-4 font-mono text-[10px] text-slate-500 overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto border border-cyber-900">
+                    {analysis.visionAnalysis.join("\n\n-------------------\n\n")}
+                </div>
+            </details>
+        </div>
+      )}
     </div>
   );
 };

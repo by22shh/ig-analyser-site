@@ -1,33 +1,103 @@
 
-import { GoogleGenAI, Chat } from "@google/genai";
-import { InstagramProfile, StrategicReport, InstagramPost } from "../types";
+import { InstagramProfile, StrategicReport } from "../types";
 import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT } from "../constants";
 
-declare const process: any;
+// --- CONFIGURATION ---
 
-// Helper to fetch image via proxy and convert to base64
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const SITE_URL = "https://zreti-app.netlify.app";
+const SITE_NAME = "ZRETI Instagram Analyzer";
+
+// MODEL CONFIGURATION
+const MODEL_VISION = "google/gemini-2.0-flash-001"; 
+const MODEL_REASONING = "google/gemini-3-pro-preview";
+
+// --- UTILS ---
+
 const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
   try {
-    // Using wsrv.nl as a reliable CORS proxy that returns images
-    const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800`; 
+    const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800&q=80`; 
     const response = await fetch(proxyUrl);
+    
     if (!response.ok) return null;
     
     const blob = await response.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64 = (reader.result as string).split(',')[1];
-        resolve(base64);
+        const res = reader.result as string;
+        if (res.startsWith('data:image')) {
+            resolve(res);
+        } else {
+            resolve(null);
+        }
       };
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
   } catch (e) {
-    console.error("Failed to fetch image for analysis", e);
+    console.warn("Failed to fetch image for analysis, skipping.");
     return null;
   }
 };
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// --- OPENROUTER CLIENT ---
+
+interface OpenRouterMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string | Array<{ type: 'text' | 'image_url', text?: string, image_url?: { url: string } }>;
+}
+
+async function openRouterCompletion(
+    messages: OpenRouterMessage[], 
+    model: string,
+    temperature: number = 0.7
+): Promise<string> {
+    if (!OPENROUTER_API_KEY) {
+        throw new Error("OPENROUTER_API_KEY is missing in environment variables.");
+    }
+
+    const maxRetries = 3;
+    let lastError;
+
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                    "HTTP-Referer": SITE_URL,
+                    "X-Title": SITE_NAME,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: temperature,
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`OpenRouter API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0]?.message?.content || "";
+
+        } catch (err: any) {
+            console.warn(`Attempt ${i+1} failed: ${err.message}`);
+            lastError = err;
+            await delay(1000 * (i + 1)); 
+        }
+    }
+
+    throw lastError;
+}
+
+// --- ANALYSIS LOGIC ---
 
 export type ProgressCallback = (current: number, total: number, stage: 'images' | 'final') => void;
 
@@ -35,99 +105,94 @@ export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
   onProgress?: ProgressCallback
 ): Promise<StrategicReport> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key is missing");
-
-  const ai = new GoogleGenAI({ apiKey });
-  
-  // ARCHITECTURE CHOICE:
-  const visionModel = "gemini-2.5-flash";
-  const reasoningModel = "gemini-3-pro-preview";
 
   // 1. VISUAL INTELLIGENCE STAGE
+  // We will look at up to 10 posts. If a post has childPosts (carousel), we might check the 2nd image too.
   const postsToAnalyze = profileData.posts.slice(0, 10);
+  let totalOperations = postsToAnalyze.length;
+  // Estimate extra operations for carousels
+  postsToAnalyze.forEach(p => { if(p.childPosts && p.childPosts.length > 1) totalOperations++; });
+
   const imageAnalysisResults: string[] = [];
+  let completedOperations = 0;
 
-  if (onProgress) onProgress(0, postsToAnalyze.length, 'images');
+  if (onProgress) onProgress(0, totalOperations, 'images');
 
-  const processPost = async (post: InstagramPost) => {
-    if (!post.displayUrl) return null;
-    const base64 = await fetchImageAsBase64(post.displayUrl);
-    if (!base64) return null;
-
-    try {
-        const imageResp = await ai.models.generateContent({
-            model: visionModel,
-            config: { systemInstruction: IMAGE_ANALYSIS_PROMPT },
-            contents: [
-                {
-                    role: "user",
-                    parts: [
-                        { inlineData: { mimeType: "image/jpeg", data: base64 } },
-                        { text: `Analyze this image from post: ${post.caption}` }
-                    ]
-                }
-            ]
-        });
-        if (imageResp.text) {
-            return `[ANALYSIS OF IMAGE ${post.id} posted at ${post.timestamp}]:\n${imageResp.text}`;
-        }
-    } catch (err) {
-        console.warn(`Failed to analyze image ${post.id}`, err);
-    }
-    return null;
-  };
-
-  // Execution loop for batches
-  const BATCH_SIZE = 3;
+  const BATCH_SIZE = 3; 
+  
   for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
-    const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
-    const batchResults = await Promise.all(batch.map(processPost));
-    
-    batchResults.forEach(res => {
-        if (res) imageAnalysisResults.push(res);
-    });
+      const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(batch.map(async (post) => {
+          // Analyze Main Image
+          if (post.displayUrl) {
+             await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
+          }
+          completedOperations++;
 
-    if (onProgress) {
-        const processedCount = Math.min(i + BATCH_SIZE, postsToAnalyze.length);
-        onProgress(processedCount, postsToAnalyze.length, 'images');
-    }
+          // Analyze One Carousel Image (Context) if available
+          if (post.childPosts && post.childPosts.length > 1) {
+              // Take the 2nd image (index 1) usually hidden from main view
+              const hiddenImageUrl = post.childPosts[1]; 
+              if (hiddenImageUrl) {
+                  await analyzeSingleImage(hiddenImageUrl, post.id, "CAROUSEL_SLIDE_2", imageAnalysisResults);
+              }
+              completedOperations++;
+          }
+      }));
+
+      if (onProgress) onProgress(completedOperations, totalOperations, 'images');
   }
 
   // 2. STRATEGIC ANALYSIS STAGE
-  if (onProgress) onProgress(postsToAnalyze.length, postsToAnalyze.length, 'final');
+  if (onProgress) onProgress(totalOperations, totalOperations, 'final');
+
+  // Enrich context with metadata specifically
+  const metadataContext = profileData.posts.map(p => {
+      return `
+      POST ID: ${p.id}
+      - Date: ${p.timestamp}
+      - Type: ${p.type} (${p.productType})
+      - Pinned: ${p.isPinned ? "YES (High Importance)" : "No"}
+      - Location: ${p.location ? `${p.location.name}` : "None"}
+      - Music: ${p.musicInfo ? `${p.musicInfo.artist} - ${p.musicInfo.song}` : "None"}
+      - Likes: ${p.likesCount}
+      - Comments: ${p.commentsCount}
+      - Caption: ${p.caption.substring(0, 200)}...
+      `;
+  }).join("\n");
+
+  const relatedContext = profileData.relatedProfiles && profileData.relatedProfiles.length > 0 
+      ? `RELATED ACCOUNTS (Potential Circle): ${profileData.relatedProfiles.map(p => p.username).join(", ")}` 
+      : "";
 
   const combinedContext = `
-    PROFILE DATA (JSON):
-    ${JSON.stringify({
-      ...profileData,
-      posts: profileData.posts.slice(0, 10)
-    }, null, 2)}
+    PROFILE METADATA:
+    Username: ${profileData.username}
+    Full Name: ${profileData.fullName}
+    Bio: ${profileData.biography}
+    Followers: ${profileData.followersCount}
+    Verified: ${profileData.isVerified}
+    ${relatedContext}
 
-    VISUAL INTELLIGENCE REPORT (Deep analysis of top images):
-    ${imageAnalysisResults.join("\n\n")}
+    POSTS METADATA (Psychological Signals):
+    ${metadataContext}
+
+    VISUAL INTELLIGENCE REPORT (Deep Image Analysis):
+    ${imageAnalysisResults.length > 0 ? imageAnalysisResults.join("\n\n") : "Visual analysis unavailable."}
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: reasoningModel,
-      config: {
-        systemInstruction: PROFILE_ANALYSIS_PROMPT,
-        temperature: 0.4, 
-      },
-      contents: [{ role: "user", parts: [{ text: combinedContext }] }]
-    });
+    const reportText = await openRouterCompletion([
+        { role: "system", content: PROFILE_ANALYSIS_PROMPT },
+        { role: "user", content: combinedContext }
+    ], MODEL_REASONING, 0.5); 
 
-    const text = response.text || "Analysis failed to generate text.";
-
+    // --- PARSING ---
     const sections: { title: string; content: string }[] = [];
-    const rawSections = text.split(/^\d+\.\s+/gm);
-    
-    if (rawSections[0].trim() === "") rawSections.shift();
-
-    const regex = /(\d+\.\s+[^:\n]+[:]?)([\s\S]*?)(?=\n\d+\.\s+|$)/g;
+    const regex = /(?:^|\n)(\d+[\.\)]\s+[^:\n]+[:]?)([\s\S]*?)(?=\n\d+[\.\)]\s+|$)/g;
     let match;
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(reportText)) !== null) {
         sections.push({
             title: match[1].trim(),
             content: match[2].trim()
@@ -135,68 +200,131 @@ export const analyzeProfileWithGemini = async (
     }
 
     if (sections.length === 0) {
-        sections.push({ title: "Strategic Report", content: text });
+        sections.push({ title: "Strategic Analysis", content: reportText });
     }
 
     return {
-        rawText: text,
+        rawText: reportText,
         sections,
-        visionAnalysis: imageAnalysisResults // Return this for the chat context
+        visionAnalysis: imageAnalysisResults 
     };
 
-  } catch (error) {
-    console.error("Gemini Analysis Error:", error);
-    throw new Error("Failed to generate strategic report.");
+  } catch (error: any) {
+    console.error("Critical Strategy Generation Error:", error);
+    return {
+        rawText: `Error: ${error.message}`,
+        sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter." }],
+        visionAnalysis: imageAnalysisResults
+    };
   }
 };
 
+async function analyzeSingleImage(url: string, postId: string, label: string, resultsArray: string[]) {
+    const base64 = await fetchImageAsBase64(url);
+    if (!base64) return;
+
+    try {
+        const description = await openRouterCompletion([
+            { role: "system", content: IMAGE_ANALYSIS_PROMPT },
+            { 
+                role: "user", 
+                content: [
+                    { type: "text", text: `Analyze this image (Post ${postId} - ${label}). Focus on hidden details.` },
+                    { type: "image_url", image_url: { url: base64 } }
+                ] 
+            }
+        ], MODEL_VISION, 0.2);
+
+        if (description) {
+            resultsArray.push(`[POST ${postId} - ${label}]:\n${description}`);
+        }
+    } catch (err) {
+        console.warn(`Failed to analyze image ${postId}`, err);
+    }
+}
+
 // --- CHAT FUNCTIONALITY ---
+
+export interface ChatSession {
+    sendMessageStream: (message: string) => AsyncGenerator<string, void, unknown>;
+}
 
 export const createChatSession = (
     profile: InstagramProfile,
     report: StrategicReport
-): Chat => {
-    const apiKey = process.env.API_KEY;
-    const ai = new GoogleGenAI({ apiKey });
-
-    // Construct a specialized system prompt for the chat
-    const systemInstruction = `
-        Ты — ZRETI AI, специализированный аналитик цифровых личностей.
-        Твоя задача — отвечать на вопросы пользователя о конкретном Instagram-профиле (@${profile.username}), который мы только что проанализировали.
-
-        У тебя есть доступ к трём уровням данных:
-        1. Сырые данные профиля (цифры, даты, био).
-        2. Детальный визуальный анализ 10 последних постов (описание одежды, окружения, предметов).
-        3. Финальное стратегическое досье, которое уже сгенерировано.
-
-        КОНТЕКСТ ПРОФИЛЯ (JSON):
-        ${JSON.stringify({
-            username: profile.username,
-            fullName: profile.fullName,
-            bio: profile.biography,
-            followers: profile.followersCount,
-            posts: profile.posts.slice(0, 10)
-        })}
-
-        ВИЗУАЛЬНЫЙ АНАЛИЗ (ГЛАЗА ИИ):
-        ${report.visionAnalysis.join("\n\n")}
-
-        СТРАТЕГИЧЕСКОЕ ДОСЬЕ (ВЫВОДЫ):
-        ${report.rawText}
-
-        ПРАВИЛА ОБЩЕНИЯ:
-        - Отвечай кратко, по делу, в стиле киберпанк-аналитика или опытного профайлера.
-        - Всегда ссылайся на факты. Если спрашивают "Почему ты решил, что он богат?", отвечай: "Потому что на фото 3 видны часы Rolex, а на фото 5 — салон Porsche".
-        - Если пользователь просит написать сообщение для этого человека — используй стиль из раздела рекомендаций.
-        - Ты говоришь на русском языке.
-        - Не придумывай факты, которых нет в контексте.
-    `;
-
-    return ai.chats.create({
-        model: "gemini-3-pro-preview", // Intelligent reasoning for chat
-        config: {
-            systemInstruction: systemInstruction,
-            temperature: 0.7, // Slightly higher for conversational fluidity
+): ChatSession => {
+    const history: OpenRouterMessage[] = [
+        { 
+            role: "system", 
+            content: `You are ZRETI AI, a strategic assistant. 
+            Context: Analysis of Instagram profile @${profile.username}.
+            
+            REPORT SUMMARY:
+            ${report.rawText.substring(0, 5000)} 
+            
+            Keep answers concise, professional, and practical.` 
         }
-    });
+    ];
+
+    return {
+        sendMessageStream: async function* (userMessage: string) {
+            if (!OPENROUTER_API_KEY) throw new Error("No API Key");
+
+            history.push({ role: "user", content: userMessage });
+
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                    "HTTP-Referer": SITE_URL,
+                    "X-Title": SITE_NAME,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: MODEL_REASONING,
+                    messages: history,
+                    stream: true
+                })
+            });
+
+            if (!response.body) throw new Error("No response body");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            let fullBotResponse = "";
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || ""; 
+
+                    for (const line of lines) {
+                        if (line.trim() === "") continue;
+                        if (line.trim() === "data: [DONE]") continue;
+                        
+                        if (line.startsWith("data: ")) {
+                            try {
+                                const json = JSON.parse(line.substring(6));
+                                const content = json.choices[0]?.delta?.content;
+                                if (content) {
+                                    fullBotResponse += content;
+                                    yield content;
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+            } finally {
+                if (fullBotResponse) {
+                    history.push({ role: "assistant", content: fullBotResponse });
+                }
+                reader.releaseLock();
+            }
+        }
+    };
 };

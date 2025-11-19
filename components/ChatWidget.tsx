@@ -1,9 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Sparkles } from 'lucide-react';
-import { Chat, GenerateContentResponse } from "@google/genai";
 import { InstagramProfile, StrategicReport } from '../types';
-import { createChatSession } from '../services/geminiService';
+import { createChatSession, ChatSession } from '../services/geminiService';
 
 interface ChatWidgetProps {
   profile: InstagramProfile;
@@ -27,7 +25,9 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const chatSessionRef = useRef<Chat | null>(null);
+  
+  // Use generic interface instead of Google SDK specific class
+  const chatSessionRef = useRef<ChatSession | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize chat session once
@@ -53,7 +53,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
     setIsTyping(true);
 
     try {
-      const result = await chatSessionRef.current.sendMessageStream({ message: userText });
+      const stream = chatSessionRef.current.sendMessageStream(userText);
       
       const botMsgId = (Date.now() + 1).toString();
       let fullResponse = "";
@@ -61,10 +61,9 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
       // Optimistically add empty bot message to stream into
       setMessages(prev => [...prev, { id: botMsgId, role: 'model', text: "" }]);
 
-      for await (const chunk of result) {
-        const chunkText = (chunk as GenerateContentResponse).text;
-        if (chunkText) {
-          fullResponse += chunkText;
+      for await (const chunk of stream) {
+        if (chunk) {
+          fullResponse += chunk;
           setMessages(prev => 
             prev.map(msg => 
               msg.id === botMsgId ? { ...msg, text: fullResponse } : msg
@@ -77,7 +76,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
       setMessages(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'model', 
-        text: "Произошла ошибка связи с нейроядром. Попробуйте еще раз." 
+        text: "Произошла ошибка связи с нейроядром (OpenRouter). Попробуйте еще раз." 
       }]);
     } finally {
       setIsTyping(false);
@@ -162,7 +161,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans no-print">
       
       {/* Chat Window */}
       {isOpen && (
@@ -171,7 +170,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
             <div className="p-4 border-b border-white/10 bg-cyber-900/50 flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-cyber-accent font-display font-bold tracking-wider text-sm">ZRETI AI ASSISTANT</span>
+                    <span className="text-cyber-accent font-display font-bold tracking-wider text-sm">ZRETI AI (OpenRouter)</span>
                 </div>
                 <button 
                     onClick={() => setIsOpen(false)}

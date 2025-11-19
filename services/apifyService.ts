@@ -1,9 +1,30 @@
 
 import { InstagramProfile, InstagramPost } from "../types";
 
+// Helper for robust fetching with retries
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3): Promise<Response> {
+    let lastError;
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url, options);
+            // If 5xx error, throw to trigger retry. 4xx errors are usually permanent (client error).
+            if (res.status >= 500) {
+                throw new Error(`Server error: ${res.status}`);
+            }
+            return res;
+        } catch (err) {
+            lastError = err;
+            if (i < retries - 1) {
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); // Exponential backoff
+            }
+        }
+    }
+    throw lastError;
+}
+
 /**
  * PRODUCTION MODE:
- * 1. Validates Apify Token (No mock fallback).
+ * 1. Validates Apify Token.
  * 2. Calls Apify API to start 'apify/instagram-scraper'.
  * 3. Polls for the run to finish with extended timeout.
  * 4. Fetches and maps dataset items.
@@ -13,30 +34,25 @@ export const fetchInstagramData = async (
   apifyToken: string | null
 ): Promise<InstagramProfile> => {
   
-  // STRICT VALIDATION: No token = Error
   if (!apifyToken || apifyToken.trim() === "") {
-    throw new Error("Apify API Token is required. Demo mode is disabled.");
+    throw new Error("Apify API Token is required. Please check your configuration.");
   }
 
   try {
     // 1. Start Actor
-    // Using 'apify/instagram-scraper' (ensure you have access/rights)
     const startUrl = `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${apifyToken}`;
     
-    // NOTE: Using the specific JSON configuration provided by the user for best results.
-    // We use 'directUrls' to force the scraper to visit the specific profile URL.
-    // CRITICAL UPDATE: 'addParentData: true' ensures we get Bio/Followers count attached to posts.
-    const runResponse = await fetch(startUrl, {
+    const runResponse = await fetchWithRetry(startUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         directUrls: [`https://www.instagram.com/${username}`],
-        resultsLimit: 10, // UPDATED: 10 posts analyzed
+        resultsLimit: 12, // Fetch slightly more to account for pinned posts/ads
         resultsType: "posts",
         searchType: "hashtag", 
         enhanceUserSearchWithFacebookPage: false,
         isUserReelFeedURL: false,
-        addParentData: true, // CHANGED: Must be true to get Profile Bio/Stats in a "posts" search
+        addParentData: true, 
         isUserTaggedFeedURL: false,
       })
     });
@@ -45,7 +61,7 @@ export const fetchInstagramData = async (
       if (runResponse.status === 401) {
         throw new Error("Invalid Apify API Token. Please check your credentials.");
       }
-      const err = await runResponse.json();
+      const err = await runResponse.json().catch(() => ({}));
       throw new Error(`Apify Start Error: ${err.error?.message || runResponse.statusText}`);
     }
 
@@ -54,84 +70,124 @@ export const fetchInstagramData = async (
     const runId = runData.data.id;
 
     // 2. Poll for completion
-    // Increased timeout for production reality (Instagram scraping is slow)
     await waitForRunToFinish(runId, apifyToken);
 
     // 3. Fetch Results
     const datasetUrl = `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}`;
-    const dataResponse = await fetch(datasetUrl);
+    const dataResponse = await fetchWithRetry(datasetUrl, { method: 'GET' });
     const items = await dataResponse.json();
 
     if (!items || items.length === 0) {
-        throw new Error("Profile not found, private, or scraping failed to retrieve items.");
+        throw new Error(`Profile @${username} not found or private. Apify returned no data.`);
     }
 
     // STRICT VALIDATION: Verify username match
-    // Instagram scraper might return related users or fuzzy matches if the specific user isn't found/accessible.
+    // Instagram scraper might return related users if the main one is private/not found.
     const normalizedTarget = username.toLowerCase();
     
     const validItems = items.filter((item: any) => {
         const itemUser = (item.ownerUsername || item.owner?.username || "").toLowerCase();
-        // Allow exact match OR check if inputUrl contains the username (common in Apify results)
-        return itemUser === normalizedTarget || (item.inputUrl && item.inputUrl.includes(normalizedTarget));
+        const inputUrl = (item.inputUrl || "").toLowerCase();
+        // Check if the item belongs to the user OR if the input URL explicitly targeted them
+        return itemUser === normalizedTarget || inputUrl.includes(normalizedTarget);
     });
 
     if (validItems.length === 0) {
-        // If strict filter fails, throw error to prevent hallucination on wrong profile
-        const foundUser = items[0]?.ownerUsername || items[0]?.owner?.username || "Unknown";
-        throw new Error(`Identity Mismatch: Scraped data belongs to '@${foundUser}', but you requested '@${username}'. The profile might be private or shadowbanned.`);
+         const potentialUser = items[0];
+         if (potentialUser && (potentialUser.username || potentialUser.ownerUsername)?.toLowerCase() === normalizedTarget) {
+             // It's a match, just maybe no posts
+         } else {
+             const foundUser = items[0]?.ownerUsername || items[0]?.owner?.username || "Unknown";
+             throw new Error(`Identity Mismatch: Scraped data belongs to '@${foundUser}', but you requested '@${username}'.`);
+         }
     }
     
-    // Use validItems or items if we trust directUrl implicitly (logic above filters strictly)
     const finalItems = validItems.length > 0 ? validItems : items;
 
     // 4. Map Apify specific raw data to our standardized Interface
-    
-    // ROBUST EXTRACTION: Find the item that has the most complete owner data
-    // Sometimes the first item misses 'owner' details but the second one has it.
     const itemWithProfileStats = finalItems.find((i: any) => i.owner && i.owner.followersCount !== undefined) || finalItems[0];
-    
     const owner = itemWithProfileStats.owner || {};
+    const metaData = itemWithProfileStats.metaData || {};
     
-    // Construct posts array. Filter out non-post items if necessary.
-    const posts: InstagramPost[] = finalItems.map((item: any, index: number) => ({
-        id: item.id || item.shortCode || index.toString(),
-        type: item.type || (item.isVideo ? 'Video' : 'Image'),
-        caption: item.caption || '',
-        hashtags: item.hashtags || [],
-        mentions: item.mentions || [],
-        likesCount: item.likesCount || 0,
-        commentsCount: item.commentsCount || 0,
-        // Extract text comments if available (apify often returns `latestComments`)
-        latestComments: Array.isArray(item.latestComments) 
-            ? item.latestComments.map((c: any) => ({
-                text: c.text || "",
-                ownerUsername: c.ownerUsername || "user",
-                timestamp: c.timestamp
-              })) 
-            : [],
-        timestamp: item.timestamp || new Date().toISOString(),
-        displayUrl: item.displayUrl || item.url || "https://picsum.photos/400/400",
-    })).slice(0, 10);
+    const posts: InstagramPost[] = finalItems
+        .filter((item:any) => item.type !== 'GraphSidecar' || item.displayUrl) 
+        .map((item: any, index: number) => {
+            
+            // Extract Child Posts (Images from Carousel)
+            let childPosts: string[] = [];
+            if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                childPosts = item.images.filter((url: any) => typeof url === 'string');
+            } else if (item.childPosts && Array.isArray(item.childPosts)) {
+                childPosts = item.childPosts.map((c: any) => c.displayUrl || c.url).filter(Boolean);
+            }
+
+            // Extract Location
+            const locationName = item.locationName || item.location?.name;
+            const locationId = item.locationId || item.location?.id;
+            
+            // Extract Music
+            let musicInfo = undefined;
+            if (item.musicInfo) {
+                musicInfo = {
+                    artist: item.musicInfo.artist_name || "",
+                    song: item.musicInfo.song_name || ""
+                };
+            }
+
+            return {
+                id: item.id || item.shortCode || index.toString(),
+                type: item.type || (item.isVideo ? 'Video' : 'Image'),
+                caption: item.caption || '',
+                hashtags: item.hashtags || [],
+                mentions: item.mentions || [],
+                likesCount: item.likesCount || 0,
+                commentsCount: item.commentsCount || 0,
+                latestComments: Array.isArray(item.latestComments) 
+                    ? item.latestComments.map((c: any) => ({
+                        text: c.text || "",
+                        ownerUsername: c.ownerUsername || "user",
+                        timestamp: c.timestamp
+                    })) 
+                    : [],
+                timestamp: item.timestamp || new Date().toISOString(),
+                displayUrl: item.displayUrl || item.url || "https://picsum.photos/400/400",
+                
+                // New Fields
+                videoViewCount: item.videoViewCount || item.videoPlayCount,
+                videoDuration: item.videoDuration,
+                isPinned: item.isPinned || false,
+                location: locationName ? { name: locationName, id: locationId } : undefined,
+                productType: item.productType, // 'clips', 'feed', 'igtv'
+                musicInfo: musicInfo,
+                childPosts: childPosts,
+                taggedUsers: item.taggedUsers ? item.taggedUsers.map((u:any) => u.username) : []
+            };
+        })
+        .slice(0, 12); // Take 12 to get a better range
+
+    // Map Related Profiles
+    const relatedProfiles = metaData.relatedProfiles?.map((rp: any) => ({
+        username: rp.username,
+        fullName: rp.full_name || rp.fullName,
+        isVerified: rp.is_verified || rp.isVerified || false
+    })) || [];
 
     return {
         username: itemWithProfileStats.ownerUsername || owner.username || username,
         fullName: itemWithProfileStats.ownerFullName || owner.fullName || "Unknown",
         biography: itemWithProfileStats.biography || owner.biography || "",
-        // Prioritize owner object stats, fall back to item root stats
         followersCount: owner.followersCount || itemWithProfileStats.followersCount || 0,
         followsCount: owner.followsCount || itemWithProfileStats.followsCount || 0,
         postsCount: owner.postsCount || itemWithProfileStats.postsCount || posts.length,
         profilePicUrl: owner.profilePicUrl || itemWithProfileStats.profilePicUrl || "https://picsum.photos/200/200",
         isVerified: owner.isVerified || itemWithProfileStats.isVerified || false,
         posts: posts,
-        // Store the valid items for debugging in the UI
-        _rawDebug: finalItems.slice(0, 5) 
+        relatedProfiles: relatedProfiles,
+        _rawDebug: finalItems.slice(0, 1) 
     };
 
   } catch (error: any) {
     console.warn("Apify Data Fetch Failed:", error);
-    // Enhance error message for UI
     if (error.message.includes("Failed to fetch")) {
       throw new Error("Network error connecting to Apify. Check your internet connection.");
     }
@@ -142,18 +198,23 @@ export const fetchInstagramData = async (
 const waitForRunToFinish = async (runId: string, token: string) => {
     let status = "RUNNING";
     let attempts = 0;
-    // Wait up to ~3 minutes (45 * 4s)
-    const maxAttempts = 45;
+    const maxAttempts = 60; 
     
     while((status === "RUNNING" || status === "READY") && attempts < maxAttempts) {
         await new Promise(r => setTimeout(r, 4000));
-        const res = await fetch(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${token}`);
-        if (!res.ok) {
-             if(res.status === 401) throw new Error("Apify Token invalid during polling.");
-             if(res.status === 404) throw new Error("Apify Run ID lost.");
+        
+        try {
+            const res = await fetchWithRetry(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${token}`, { method: 'GET' });
+            if (!res.ok) {
+                 if(res.status === 401) throw new Error("Apify Token invalid during polling.");
+                 if(res.status === 404) throw new Error("Apify Run ID lost.");
+            }
+            const data = await res.json();
+            status = data.data.status;
+        } catch (e) {
+            console.warn("Polling error, retrying...", e);
         }
-        const data = await res.json();
-        status = data.data.status;
+        
         attempts++;
     }
 
