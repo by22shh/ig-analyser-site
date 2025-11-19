@@ -109,6 +109,10 @@ export const fetchInstagramData = async (
     const owner = itemWithProfileStats.owner || {};
     const metaData = itemWithProfileStats.metaData || {};
     
+    // Extract best possible profile picture (Priority: HD Info -> Standard -> Fallback)
+    const hdProfilePic = owner.hdProfilePicUrlInfo?.url || owner.hd_profile_pic_url_info?.url;
+    const profilePicUrl = hdProfilePic || owner.profilePicUrl || itemWithProfileStats.profilePicUrl || "https://picsum.photos/200/200";
+
     const posts: InstagramPost[] = finalItems
         .filter((item:any) => item.type !== 'GraphSidecar' || item.displayUrl) 
         .map((item: any, index: number) => {
@@ -179,7 +183,7 @@ export const fetchInstagramData = async (
         followersCount: owner.followersCount || itemWithProfileStats.followersCount || 0,
         followsCount: owner.followsCount || itemWithProfileStats.followsCount || 0,
         postsCount: owner.postsCount || itemWithProfileStats.postsCount || posts.length,
-        profilePicUrl: owner.profilePicUrl || itemWithProfileStats.profilePicUrl || "https://picsum.photos/200/200",
+        profilePicUrl: profilePicUrl,
         isVerified: owner.isVerified || itemWithProfileStats.isVerified || false,
         posts: posts,
         relatedProfiles: relatedProfiles,

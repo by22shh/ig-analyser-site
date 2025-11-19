@@ -41,26 +41,25 @@ interface AnalysisDashboardProps {
 
 // Robust Avatar Component
 const ProfileAvatar = ({ src, alt, className }: { src: string, alt: string, className: string }) => {
-    // Helper to generate safe proxy URL
-    // Instagram CDNs (fbcdn, cdninstagram) often block direct hotlinking or have CORS issues.
-    // We use wsrv.nl as a high-performance proxy to strip headers and resize.
-    const getProxyUrl = (url: string) => {
-        if (!url) return '';
-        // Check if it's already a data URL or local
-        if (url.startsWith('data:') || url.startsWith('/')) return url;
-        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&output=jpg`;
-    };
+    const [imgSrc, setImgSrc] = useState(src);
+    const [retryCount, setRetryCount] = useState(0);
 
-    const [imgSrc, setImgSrc] = useState(getProxyUrl(src) || src);
-
+    // Reset if the source prop changes
     useEffect(() => {
-        setImgSrc(getProxyUrl(src) || src);
+        setImgSrc(src);
+        setRetryCount(0);
     }, [src]);
 
     const handleError = () => {
-        // Fallback to generated avatar if image fails to load
-        if (!imgSrc.includes('ui-avatars.com')) {
+        if (retryCount === 0) {
+            // Attempt 1: Try Proxy (wsrv.nl) to bypass CORS/Hotlink protection
+            const encoded = encodeURIComponent(src);
+            setImgSrc(`https://wsrv.nl/?url=${encoded}&w=200&h=200&output=jpg`);
+            setRetryCount(1);
+        } else if (retryCount === 1) {
+            // Attempt 2: Fallback to UI Avatar (Generated)
             setImgSrc(`https://ui-avatars.com/api/?name=${encodeURIComponent(alt)}&background=0f172a&color=22d3ee&size=200&bold=true&font-size=0.5`);
+            setRetryCount(2);
         }
     };
 

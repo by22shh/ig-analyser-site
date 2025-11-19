@@ -9,7 +9,7 @@ const SITE_URL = "https://zreti-app.netlify.app";
 const SITE_NAME = "ZRETI Instagram Analyzer";
 
 // MODEL CONFIGURATION
-// Используем Gemini 2.0 Flash для скорости и Gemini 2.0 Pro Experimental для глубины
+
 const MODEL_VISION = "google/gemini-2.5-flash"; 
 const MODEL_REASONING = "google/gemini-3-pro-preview"; 
 
