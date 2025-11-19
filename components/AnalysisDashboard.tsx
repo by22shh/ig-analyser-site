@@ -202,6 +202,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const { t } = useLanguage();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
+  // Scroll to top on mount (instant, to look like a fresh page load)
+  useEffect(() => {
+      window.scrollTo(0, 0);
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };

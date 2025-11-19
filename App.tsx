@@ -176,10 +176,7 @@ const App: React.FC = () => {
           addToSearchHistory(currentData.username, currentData, analysis);
           
           setStep('result');
-          // Scroll to top with delay
-          setTimeout(() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-          }, 100);
+          // Scroll logic handled inside AnalysisDashboard on mount
       } catch (err: any) {
           console.error(err);
           setError(err.message || t('error_analysis'));
@@ -208,10 +205,7 @@ const App: React.FC = () => {
            setProfileData(item.profileData);
            setAnalysisResult(item.reportData);
            setStep('result');
-           // Scroll to top with slight delay to ensure DOM is ready
-           setTimeout(() => {
-               window.scrollTo({ top: 0, behavior: 'smooth' });
-           }, 100);
+           // Scroll logic handled inside AnalysisDashboard on mount
       } else {
            // Re-run analysis if we only saved the username
            setUsername(item.username);
