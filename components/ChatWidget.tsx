@@ -170,7 +170,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
                 <h3 className="font-display font-bold text-white text-sm tracking-wider">{t('chat_title')}</h3>
                 <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Online • Gemini Pro</span>
+                    <span className="text-[10px] text-slate-400 font-mono uppercase">Online</span>
                 </div>
             </div>
         </div>
