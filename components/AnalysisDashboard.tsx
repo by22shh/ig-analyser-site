@@ -249,4 +249,134 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
         </div>
 
         <div className="flex gap-2 no-print">
-            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent border border-cyber-700 rounded text
+            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent border border-cyber-700 rounded text-xs font-mono transition">
+                <Download className="w-4 h-4" /> EXPORT PDF
+            </button>
+            <button onClick={onReset} className="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 rounded text-xs font-mono transition">
+                НОВЫЙ ПОИСК
+            </button>
+        </div>
+      </div>
+
+      {/* --- VISUAL INTELLIGENCE BLOCK --- */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard 
+          label="Вовлеченность (ER)" 
+          value={`${er}%`} 
+          subValue="Средний показатель"
+          icon={Activity} 
+        />
+        <StatCard 
+          label="Средние Лайки" 
+          value={avgLikes.toLocaleString()} 
+          subValue={`Всего: ${totalLikes.toLocaleString()}`}
+          icon={Heart} 
+        />
+        <StatCard 
+          label="Средние Комментарии" 
+          value={avgComments.toLocaleString()} 
+          subValue={`Всего: ${totalComments.toLocaleString()}`}
+          icon={MessageCircle} 
+        />
+         <StatCard 
+          label="Частота публикаций" 
+          value={frequency} 
+          subValue="На основе последних 10"
+          icon={Calendar} 
+        />
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:block print:space-y-6">
+        
+        {/* Volume Chart */}
+        <div className="bg-cyber-800/20 border border-cyber-700/50 p-6 rounded-xl backdrop-blur-sm print:break-inside-avoid">
+            <h3 className="text-sm font-display font-bold text-slate-300 mb-6 flex items-center gap-2 print:text-black">
+                <BarChart3 className="w-4 h-4 text-cyber-accent print:text-black" />
+                ДИНАМИКА РЕАКЦИЙ (ПОСЛЕДНИЕ 10)
+            </h3>
+            <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{fill: '#334155', opacity: 0.2}} />
+                        <Bar dataKey="likes" name="Лайки" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Bar dataKey="comments" name="Комментарии" fill="#ec4899" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+
+        {/* Engagement Trend */}
+        <div className="bg-cyber-800/20 border border-cyber-700/50 p-6 rounded-xl backdrop-blur-sm print:break-inside-avoid">
+            <h3 className="text-sm font-display font-bold text-slate-300 mb-6 flex items-center gap-2 print:text-black">
+                <Activity className="w-4 h-4 text-cyber-purple print:text-black" />
+                ТРЕНД ВОВЛЕЧЕННОСТИ (%)
+            </h3>
+            <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line type="monotone" dataKey="er" name="ER %" stroke="#a855f7" strokeWidth={3} dot={{fill: '#a855f7', r: 4}} activeDot={{r: 6, stroke: '#fff'}} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+      </div>
+
+      <div className="h-px bg-gradient-to-r from-transparent via-cyber-700 to-transparent w-full my-8 opacity-50 print:hidden"></div>
+
+      {/* --- TEXT REPORT CONTENT --- */}
+      <div className="grid grid-cols-1 gap-6">
+        {analysis.sections.map((section, idx) => (
+            <div 
+                key={idx} 
+                className={`
+                    group relative p-6 rounded-xl border backdrop-blur-sm transition-all duration-300 print:break-inside-avoid
+                    ${isWarningSection(section.title) 
+                        ? 'bg-red-950/10 border-red-900/30 hover:border-red-500/50' 
+                        : isActionSection(section.title)
+                            ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent shadow-[0_0_20px_rgba(34,211,238,0.05)]'
+                            : 'bg-cyber-800/20 border-cyber-700/50 hover:border-slate-500'
+                    }
+                `}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className={`
+                        font-display font-bold text-lg uppercase tracking-wider
+                        ${isWarningSection(section.title) ? 'text-red-400' : isActionSection(section.title) ? 'text-cyber-accent' : 'text-white'}
+                    `}>
+                        {section.title}
+                    </h3>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity no-print">
+                        <button 
+                            onClick={() => copyToClipboard(section.content, idx.toString())}
+                            className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white"
+                            title="Copy text"
+                        >
+                            {copiedSection === idx.toString() ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="prose prose-invert prose-sm max-w-none font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
+                    {section.content}
+                </div>
+
+                {/* Decorators */}
+                {isInsightSection(section.title) && (
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-yellow-500/10 to-transparent pointer-events-none rounded-tr-xl print:hidden"></div>
+                )}
+            </div>
+        ))}
+      </div>
+    </div>
+  );
+};

@@ -2,13 +2,14 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  // Загружаем env файлы. Используем process.cwd() безопасно.
+  // В среде Node.js (где работает Vite) process всегда определен.
+  const env = loadEnv(mode, process.cwd(), '');
   
   return {
     plugins: [react()],
     define: {
-      // Expose API_KEY to the client side as process.env.API_KEY
+      // Прокидываем API_KEY в клиентский код
       'process.env.API_KEY': JSON.stringify(process.env.API_KEY || env.API_KEY || ''),
     }
   }
