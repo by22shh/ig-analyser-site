@@ -5,6 +5,7 @@ import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
 import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
+import { ProfileAvatar } from './components/ProfileAvatar';
 import { getSearchHistory, addToSearchHistory, HistoryItem } from './utils/storage';
 
 // Environment Variables
@@ -308,13 +309,15 @@ const App: React.FC = () => {
                                         onClick={() => loadFromHistory(item)}
                                         className="group flex items-center gap-3 bg-slate-800/50 hover:bg-cyber-900/80 border border-slate-700 hover:border-cyber-accent/50 rounded-lg p-2 pr-4 transition-all"
                                     >
-                                        <div className="w-8 h-8 rounded bg-slate-700 overflow-hidden">
+                                        <div className="w-8 h-8 rounded bg-slate-700 overflow-hidden flex items-center justify-center">
                                             {item.profileData?.profilePicUrl ? (
-                                                <img src={item.profileData.profilePicUrl} alt={item.username} className="w-full h-full object-cover" />
+                                                <ProfileAvatar 
+                                                    src={item.profileData.profilePicUrl} 
+                                                    alt={item.username} 
+                                                    className="w-full h-full object-cover" 
+                                                />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-500">
-                                                    <Instagram className="w-4 h-4" />
-                                                </div>
+                                                <Instagram className="w-4 h-4 text-slate-500" />
                                             )}
                                         </div>
                                         <div className="text-left">

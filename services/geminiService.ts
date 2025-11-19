@@ -144,45 +144,38 @@ export const analyzeProfileWithGemini = async (
   onProgress?: ProgressCallback
 ): Promise<StrategicReport> => {
 
-  // Limit to 10 posts to avoid token limits and timeouts
-  const postsToAnalyze = profileData.posts.slice(0, 10);
-  let totalImageOperations = postsToAnalyze.length;
-  // Estimate extra operations for carousels (checking 2nd slide)
-  postsToAnalyze.forEach(p => { if(p.childPosts && p.childPosts.length > 1) totalImageOperations++; });
-
-  const imageAnalysisResults: string[] = [];
-  let completedImageOperations = 0;
-
-  if (onProgress) onProgress(0, totalImageOperations, 'images');
-
-  // --- PARALLEL EXECUTION START ---
+  // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
+  // We analyze images in batches to reduce HTTP requests and speed up processing.
+  // 100 posts -> ~20 requests instead of 100.
+  const postsToAnalyze = profileData.posts.slice(0, 12); // Increased limit slightly
+  const BATCH_SIZE = 4; // Send 4 images per single LLM request (Optimal for Gemini)
   
-  // 1. Start Image Analysis Process
+  const imageAnalysisResults: string[] = [];
+  let processedCount = 0;
+
+  if (onProgress) onProgress(0, postsToAnalyze.length, 'images');
+
+  // Start Image Analysis in Background
   const imageAnalysisPromise = (async () => {
-      const BATCH_SIZE = 3; // Process 3 images in parallel
-      
       for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
           const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
           
-          await Promise.all(batch.map(async (post) => {
-              // Analyze Main Image -> Uses MODEL_VISION
-              if (post.displayUrl) {
-                 await analyzeSingleImage(post.displayUrl, post.id, "MAIN_IMAGE", imageAnalysisResults);
-              }
-              completedImageOperations++;
-              if (onProgress) onProgress(completedImageOperations, totalImageOperations, 'images');
+          // 1. Parallel Fetch of Base64 (Network Bound)
+          const base64Promises = batch.map(async (post) => {
+              if (!post.displayUrl) return null;
+              const b64 = await fetchImageAsBase64(post.displayUrl);
+              return b64 ? { id: post.id, data: b64 } : null;
+          });
+          
+          const images = (await Promise.all(base64Promises)).filter(img => img !== null) as {id: string, data: string}[];
 
-              // Analyze One Carousel Image (Context) if available -> Uses MODEL_VISION
-              if (post.childPosts && post.childPosts.length > 1) {
-                  // Take the 2nd image (index 1) usually hidden from main view
-                  const hiddenImageUrl = post.childPosts[1]; 
-                  if (hiddenImageUrl) {
-                      await analyzeSingleImage(hiddenImageUrl, post.id, "CAROUSEL_SLIDE_2", imageAnalysisResults);
-                  }
-                  completedImageOperations++;
-                  if (onProgress) onProgress(completedImageOperations, totalImageOperations, 'images');
-              }
-          }));
+          if (images.length > 0) {
+              // 2. Single LLM Request for the whole batch (AI Bound)
+              await analyzeImageBatch(images, imageAnalysisResults);
+          }
+          
+          processedCount += batch.length;
+          if (onProgress) onProgress(Math.min(processedCount, postsToAnalyze.length), postsToAnalyze.length, 'images');
       }
   })();
 
@@ -272,31 +265,31 @@ export const analyzeProfileWithGemini = async (
   }
 };
 
-async function analyzeSingleImage(url: string, postId: string, label: string, resultsArray: string[]) {
-    // If URL is clearly invalid, skip immediately
-    if (!url || url.includes('null') || url.includes('undefined')) return;
-
-    const base64 = await fetchImageAsBase64(url);
-    if (!base64) return;
+async function analyzeImageBatch(images: {id: string, data: string}[], resultsArray: string[]) {
+    if (images.length === 0) return;
 
     try {
+        const userContent: any[] = [
+             { type: "text", text: `Analyze these ${images.length} images sequentially. For each image, briefly describe the key visual elements, hidden details, and the vibe. Be concise.` }
+        ];
+
+        // Add images to the payload
+        images.forEach(img => {
+             userContent.push({ type: "text", text: `[Image ID: ${img.id}]` });
+             userContent.push({ type: "image_url", image_url: { url: img.data } });
+        });
+
         // Uses MODEL_VISION for speed and multimodal capability
         const description = await openRouterCompletion([
             { role: "system", content: IMAGE_ANALYSIS_PROMPT },
-            { 
-                role: "user", 
-                content: [
-                    { type: "text", text: `Analyze this image (Post ${postId} - ${label}). Focus on hidden details.` },
-                    { type: "image_url", image_url: { url: base64 } }
-                ] 
-            }
-        ], MODEL_VISION, 0.2);
+            { role: "user", content: userContent }
+        ], MODEL_VISION, 0.4);
 
         if (description) {
-            resultsArray.push(`[POST ${postId} - ${label}]:\n${description}`);
+            resultsArray.push(description);
         }
     } catch (err) {
-        console.warn(`Failed to analyze image ${postId}`, err);
+        console.warn(`Failed to analyze image batch`, err);
     }
 }
 
