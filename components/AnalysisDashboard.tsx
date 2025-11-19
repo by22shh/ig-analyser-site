@@ -45,25 +45,27 @@ interface AnalysisDashboardProps {
 // --- VISUAL COMPONENTS ---
 
 const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
-  <div className="bg-cyber-800/40 border border-cyber-700/50 p-4 rounded-xl backdrop-blur-sm relative overflow-hidden group hover:border-cyber-accent/50 transition-colors print:border-gray-300 print:bg-white print:break-inside-avoid">
-    <div className="absolute right-2 top-2 text-cyber-700 group-hover:text-cyber-accent/20 transition-colors print:hidden">
+  <div className="bg-cyber-800/40 border border-cyber-700/50 p-4 rounded-xl backdrop-blur-sm group hover:border-cyber-accent/50 transition-colors print:border-gray-300 print:bg-white print:break-inside-avoid relative">
+    <div className="absolute right-2 top-2 text-cyber-700 group-hover:text-cyber-accent/20 transition-colors print:hidden pointer-events-none">
       <Icon className="w-8 h-8 opacity-20" />
     </div>
     
     {/* Label with Tooltip (Hover over label to see) */}
-    <div className="relative group/tooltip inline-block">
+    <div className="relative group/tooltip inline-block z-20">
         <div className={`text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest mb-1 print:text-slate-600 ${tooltip ? 'cursor-help border-b border-cyber-accent/20 border-dashed' : ''}`}>
             {label}
         </div>
         {tooltip && (
-            <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-black/95 border border-cyber-700 rounded text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-30 leading-tight shadow-xl backdrop-blur-sm">
+            <div className="absolute bottom-full left-0 mb-2 w-48 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 {tooltip}
+                {/* Arrow */}
+                <div className="absolute top-full left-4 -mt-px border-4 border-transparent border-t-cyber-700"></div>
             </div>
         )}
     </div>
     
-    <div className="text-2xl font-display font-bold text-white tracking-wide print:text-black">{value}</div>
-    {subValue && <div className="text-xs text-slate-400 font-mono mt-1 print:text-slate-600">{subValue}</div>}
+    <div className="text-2xl font-display font-bold text-white tracking-wide print:text-black relative z-10">{value}</div>
+    {subValue && <div className="text-xs text-slate-400 font-mono mt-1 print:text-slate-600 relative z-10">{subValue}</div>}
   </div>
 );
 
