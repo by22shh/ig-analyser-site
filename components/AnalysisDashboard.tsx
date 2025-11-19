@@ -251,9 +251,10 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 <h1 className="text-2xl font-display font-bold text-white tracking-wide print:text-black">
                     ДОСЬЕ: @{profile.username.toUpperCase()}
                 </h1>
-                <div className="flex gap-4 text-xs font-mono text-slate-400 mt-1 print:text-gray-600">
-                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.followersCount.toLocaleString()} FOLLOWERS</span>
-                    <span>ID: {profile.username}</span>
+                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-1 print:text-gray-600">
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} Followers</span>
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} Following</span>
+                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} Posts</span>
                 </div>
             </div>
         </div>
@@ -320,8 +321,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                     <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" hide />
-                        {/* Fix: Auto-scale Y axis with padding to prevent "upside down" look */}
-                        <YAxis hide domain={['auto', 'auto']} padding={{ top: 20, bottom: 10 }} />
+                        {/* Fix: Start Y axis from 0 to avoid "flying" lines, but let it grow automatically */}
+                        <YAxis hide domain={[0, 'auto']} padding={{ top: 20, bottom: 5 }} />
                         <Tooltip content={<CustomTooltip />} />
                         <Line 
                             type="monotone" 
