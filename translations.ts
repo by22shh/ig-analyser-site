@@ -142,7 +142,10 @@ export const translations = {
     // Buttons
     btn_copy: "COPY RAW",
     btn_pdf: "SAVE PDF",
-    btn_new: "NEW SCAN"
+    btn_new: "NEW SCAN",
+    btn_debt: "OSINT / DEBT COLLECTION",
+    mode_standard: "Standard Profile",
+    mode_debt: "Debt Collection Scoring"
   }
 };
 
