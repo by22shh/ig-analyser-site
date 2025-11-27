@@ -393,6 +393,7 @@ const App: React.FC = () => {
                     stage={loadingStage}
                     progress={loadingProgress}
                     progressMessage={loadingMessage}
+                    mode={analysisMode}
                 />
             </div>
         )}

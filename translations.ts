@@ -20,9 +20,14 @@ export const translations = {
     stage_1: "Сбор Данных",
     stage_2: "Обработка Медиа",
     stage_3: "Глубокий Анализ",
+    stage_1_debt: "ПОИСК АКТИВОВ",
+    stage_2_debt: "СКАН УЯЗВИМОСТЕЙ",
+    stage_3_debt: "ФОРМИРОВАНИЕ ДОСЬЕ",
     loading_connect: "Инициализация соединения... Поиск профиля...",
     loading_images: "Параллельный анализ: обработано {current} из {total} изображений",
+    loading_images_debt: "Сканирование визуальных маркеров достатка...",
     loading_final: "Синтез данных и формирование досье...",
+    loading_final_debt: "Сопоставление фактов и генерация стратегии взыскания...",
     
     // AnalysisDashboard
     dossier_prefix: "ОТЧЕТ:",
@@ -93,9 +98,14 @@ export const translations = {
     stage_1: "Data Collection",
     stage_2: "Media Processing",
     stage_3: "Deep Analysis",
+    stage_1_debt: "ASSET TRACING",
+    stage_2_debt: "VULNERABILITY SCAN",
+    stage_3_debt: "DOSSIER GENERATION",
     loading_connect: "Initializing connection... Searching profile...",
     loading_images: "Parallel analysis: processed {current} of {total} images",
+    loading_images_debt: "Scanning for wealth markers...",
     loading_final: "Data synthesis and dossier generation...",
+    loading_final_debt: "Fact correlation and recovery strategy generation...",
     
     // AnalysisDashboard
     dossier_prefix: "REPORT:",
