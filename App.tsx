@@ -82,6 +82,7 @@ const App: React.FC = () => {
   const [loadingStage, setLoadingStage] = useState<1 | 2 | 3>(1);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
+  const [analysisMode, setAnalysisMode] = useState<'standard' | 'debt'>('standard');
 
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +169,7 @@ const App: React.FC = () => {
                 setLoadingProgress(0);
                 setLoadingMessage(t('loading_final'));
             }
-          }, language);
+          }, language, analysisMode);
           
           setAnalysisResult(analysis);
           
@@ -284,6 +285,32 @@ const App: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* MODE SELECTION */}
+                        <div className="grid grid-cols-2 gap-3 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50">
+                            <button
+                                type="button"
+                                onClick={() => setAnalysisMode('standard')}
+                                className={`py-2 px-3 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${
+                                    analysisMode === 'standard' 
+                                        ? 'bg-cyan-600 text-white shadow-lg' 
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                                }`}
+                            >
+                                {t('mode_standard')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAnalysisMode('debt')}
+                                className={`py-2 px-3 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${
+                                    analysisMode === 'debt' 
+                                        ? 'bg-red-600 text-white shadow-lg shadow-red-500/20' 
+                                        : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
+                                }`}
+                            >
+                                {t('mode_debt')}
+                            </button>
+                        </div>
+
                         {error && (
                             <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
                                 <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
@@ -308,10 +335,14 @@ const App: React.FC = () => {
                         {!profileData && (
                             <button 
                                 type="submit" 
-                                className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20"
+                                className={`w-full font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20
+                                    ${analysisMode === 'debt' 
+                                        ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-500/20 hover:shadow-red-500/40 border-red-400/20' 
+                                        : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400'
+                                    }`}
                             >
                                 <span className="flex items-center gap-2 text-lg">
-                                    {t('button_analyze')} <Search className="w-5 h-5" />
+                                    {analysisMode === 'debt' ? t('btn_debt') : t('button_analyze')} <Search className="w-5 h-5" />
                                 </span>
                             </button>
                         )}

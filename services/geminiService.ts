@@ -1,6 +1,6 @@
 
 import { InstagramProfile, StrategicReport } from "../types";
-import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT } from "../constants";
+import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT, DEBT_COLLECTOR_PROMPT } from "../constants";
 
 // --- CONFIGURATION ---
 
@@ -142,7 +142,8 @@ export type ProgressCallback = (current: number, total: number, stage: 'images' 
 export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
   onProgress?: ProgressCallback,
-  language: 'ru' | 'en' = 'ru'
+  language: 'ru' | 'en' = 'ru',
+  analysisType: 'standard' | 'debt' = 'standard'
 ): Promise<StrategicReport> => {
 
   // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
@@ -232,10 +233,12 @@ export const analyzeProfileWithGemini = async (
     ? "\n\nIMPORTANT: OUTPUT THE FINAL REPORT STRICTLY IN ENGLISH. TRANSLATE ALL SECTIONS, TITLES, AND INSIGHTS TO ENGLISH." 
     : "";
 
+  const selectedPrompt = analysisType === 'debt' ? DEBT_COLLECTOR_PROMPT : PROFILE_ANALYSIS_PROMPT;
+
   try {
     // Uses MODEL_REASONING for the big report
     const reportText = await openRouterCompletion([
-        { role: "system", content: PROFILE_ANALYSIS_PROMPT + langInstruction },
+        { role: "system", content: selectedPrompt + langInstruction },
         { role: "user", content: combinedContext }
     ], MODEL_REASONING, 0.5); 
 

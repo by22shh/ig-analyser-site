@@ -69,7 +69,10 @@ export const translations = {
     // Buttons
     btn_copy: "КОПИРОВАТЬ",
     btn_pdf: "СКАЧАТЬ PDF",
-    btn_new: "НОВЫЙ СКАН"
+    btn_new: "НОВЫЙ СКАН",
+    btn_debt: "OSINT / ВЗЫСКАНИЕ",
+    mode_standard: "Стандартный профиль",
+    mode_debt: "Коллекторский скоринг"
   },
   en: {
     // App.tsx

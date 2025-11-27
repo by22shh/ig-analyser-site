@@ -95,15 +95,22 @@ const renderMarkdown = (text: string) => {
     let currentList: React.ReactNode[] = [];
 
     const processInlineStyles = (str: string) => {
-        const parts = str.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+        // Pass 1: Bold (**...**)
+        const parts = str.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
+            if (part.startsWith('**') && part.length >= 4 && part.endsWith('**')) {
+                return <strong key={`bold-${i}`} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
             }
-            if (part.startsWith('*') && part.endsWith('*')) {
-                return <em key={i} className="italic text-slate-300 print:text-slate-700">{part.slice(1, -1)}</em>;
-            }
-            return part;
+            
+            // Pass 2: Italic (*...*)
+            const subParts = part.split(/(\*.*?\*)/g);
+            return subParts.map((subPart, j) => {
+                if (subPart.startsWith('*') && subPart.length >= 2 && subPart.endsWith('*')) {
+                    if (subPart === '**') return subPart; // Ignore empty bold treated as italic
+                    return <em key={`italic-${i}-${j}`} className="italic text-slate-300 print:text-slate-700">{subPart.slice(1, -1)}</em>;
+                }
+                return subPart;
+            });
         });
     };
 
@@ -129,6 +136,29 @@ const renderMarkdown = (text: string) => {
                 </h4>
             );
         }
+        else if (/^\d+\./.test(trimmed)) {
+            if (currentList.length > 0) {
+                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+                currentList = [];
+            }
+            
+            let content = trimmed;
+            // Fix unclosed bold
+            if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
+                content += "**";
+            }
+            
+            const firstSpace = content.indexOf(' ');
+            const number = firstSpace > -1 ? content.slice(0, firstSpace) : content;
+            const text = firstSpace > -1 ? content.slice(firstSpace + 1) : '';
+
+            renderedElements.push(
+                <div key={`nl-${index}`} className="mb-3 flex items-start gap-3 text-slate-300 print:text-slate-800">
+                     <span className="font-mono text-cyber-accent font-bold mt-1 text-xs shrink-0">{number}</span>
+                     <span className="leading-relaxed">{processInlineStyles(text)}</span>
+                </div>
+            );
+        }
         else {
             if (currentList.length > 0) {
                 renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
@@ -138,9 +168,13 @@ const renderMarkdown = (text: string) => {
             if (trimmed.length === 0) {
                 renderedElements.push(<div key={`br-${index}`} className="h-2" />);
             } else {
+                let content = line;
+                if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
+                     content += "**";
+                }
                 renderedElements.push(
                     <p key={`p-${index}`} className="mb-2 leading-relaxed text-slate-300 print:text-slate-800">
-                        {processInlineStyles(line)}
+                        {processInlineStyles(content)}
                     </p>
                 );
             }
@@ -323,13 +357,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                </div>
                <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
+                    <BarChart data={chartData} barGap={2}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34,211,238,0.05)'}} />
                         {/* Use two Y axes to handle scale difference between likes and comments */}
-                        <YAxis yAxisId="left" orientation="left" hide />
-                        <YAxis yAxisId="right" orientation="right" hide />
+                        <YAxis yAxisId="left" orientation="left" hide domain={[0, 'auto']} />
+                        <YAxis yAxisId="right" orientation="right" hide domain={[0, 'auto']} />
                         
                         <Bar yAxisId="left" dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
                         <Bar yAxisId="right" dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
