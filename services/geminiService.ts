@@ -1,6 +1,6 @@
 
 import { InstagramProfile, StrategicReport } from "../types";
-import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT, DEBT_COLLECTOR_PROMPT, HR_RECRUITMENT_PROMPT } from "../constants";
+import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT, DEBT_COLLECTOR_PROMPT, HR_RECRUITMENT_PROMPT, INFLUENCER_AUDIT_PROMPT } from "../constants";
 
 // --- CONFIGURATION ---
 
@@ -143,7 +143,7 @@ export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
   onProgress?: ProgressCallback,
   language: 'ru' | 'en' = 'ru',
-  analysisType: 'standard' | 'debt' | 'hr' = 'standard',
+  analysisType: 'standard' | 'debt' | 'hr' | 'influencer' = 'standard',
   targetPosition?: string
 ): Promise<StrategicReport> => {
 
@@ -240,6 +240,8 @@ export const analyzeProfileWithGemini = async (
       selectedPrompt = DEBT_COLLECTOR_PROMPT;
   } else if (analysisType === 'hr') {
       selectedPrompt = HR_RECRUITMENT_PROMPT.replace('{{TARGET_POSITION}}', targetPosition || "General Position");
+  } else if (analysisType === 'influencer') {
+      selectedPrompt = INFLUENCER_AUDIT_PROMPT;
   }
 
   try {

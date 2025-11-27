@@ -77,16 +77,23 @@ export const translations = {
     btn_new: "НОВЫЙ СКАН",
     btn_debt: "OSINT / ВЗЫСКАНИЕ",
     btn_hr: "HR / РЕКРУТМЕНТ",
+    btn_influencer: "BRAND / ИНФЛЮЕНСЕР",
     mode_standard: "Стандартный профиль",
     mode_debt: "Коллекторский скоринг",
     mode_hr: "HR Анализ Кандидата",
+    mode_influencer: "Аудит Инфлюенсера",
     hr_position_label: "Позиция кандидата",
     hr_position_placeholder: "Например: Senior Frontend Dev",
     stage_1_hr: "АНАЛИЗ SOFT SKILLS",
     stage_2_hr: "ПРОВЕРКА CULTURAL FIT",
     stage_3_hr: "ОЦЕНКА РИСКОВ",
     loading_images_hr: "Поиск поведенческих паттернов...",
-    loading_final_hr: "Составление психологического портрета кандидата..."
+    loading_final_hr: "Составление психологического портрета кандидата...",
+    stage_1_influencer: "BRAND SAFETY SCAN",
+    stage_2_influencer: "АНАЛИЗ АУДИТОРИИ",
+    stage_3_influencer: "ОЦЕНКА INTEGRITY",
+    loading_images_influencer: "Проверка на накрутки и токсичность...",
+    loading_final_influencer: "Расчет Trust Score и рекламного потенциала..."
   },
   en: {
     // App.tsx
@@ -164,16 +171,23 @@ export const translations = {
     btn_new: "NEW SCAN",
     btn_debt: "OSINT / DEBT COLLECTION",
     btn_hr: "HR / RECRUITMENT",
+    btn_influencer: "BRAND / INFLUENCER",
     mode_standard: "Standard Profile",
     mode_debt: "Debt Collection Scoring",
     mode_hr: "HR Candidate Analysis",
+    mode_influencer: "Influencer Audit",
     hr_position_label: "Candidate Position",
     hr_position_placeholder: "E.g.: Sales Manager",
     stage_1_hr: "SOFT SKILLS ANALYSIS",
     stage_2_hr: "CULTURAL FIT CHECK",
     stage_3_hr: "RISK ASSESSMENT",
     loading_images_hr: "Scanning behavioral patterns...",
-    loading_final_hr: "Generating candidate psychological profile..."
+    loading_final_hr: "Generating candidate psychological profile...",
+    stage_1_influencer: "BRAND SAFETY SCAN",
+    stage_2_influencer: "AUDIENCE ANALYSIS",
+    stage_3_influencer: "INTEGRITY CHECK",
+    loading_images_influencer: "Checking for fake followers and toxicity...",
+    loading_final_influencer: "Calculating Trust Score and ad potential..."
   }
 };
 

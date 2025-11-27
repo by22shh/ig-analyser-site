@@ -82,7 +82,7 @@ const App: React.FC = () => {
   const [loadingStage, setLoadingStage] = useState<1 | 2 | 3>(1);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
-  const [analysisMode, setAnalysisMode] = useState<'standard' | 'debt' | 'hr'>('standard');
+  const [analysisMode, setAnalysisMode] = useState<'standard' | 'debt' | 'hr' | 'influencer'>('standard');
   const [targetPosition, setTargetPosition] = useState('');
 
   const [username, setUsername] = useState('');
@@ -287,7 +287,7 @@ const App: React.FC = () => {
                         </div>
 
                         {/* MODE SELECTION */}
-                        <div className="grid grid-cols-3 gap-2 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50 mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50 mb-4">
                             <button
                                 type="button"
                                 onClick={() => setAnalysisMode('standard')}
@@ -320,6 +320,17 @@ const App: React.FC = () => {
                                 }`}
                             >
                                 {t('mode_hr')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAnalysisMode('influencer')}
+                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                    analysisMode === 'influencer' 
+                                        ? 'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20' 
+                                        : 'text-slate-400 hover:text-fuchsia-400 hover:bg-slate-800'
+                                }`}
+                            >
+                                {t('mode_influencer')}
                             </button>
                         </div>
 
@@ -368,11 +379,13 @@ const App: React.FC = () => {
                                         ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-500/20 hover:shadow-red-500/40 border-red-400/20' 
                                         : analysisMode === 'hr'
                                             ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/20 hover:shadow-emerald-500/40 border-emerald-400/20'
-                                            : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400'
+                                            : analysisMode === 'influencer'
+                                                ? 'bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400 shadow-fuchsia-500/20 hover:shadow-fuchsia-500/40 border-fuchsia-400/20'
+                                                : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400'
                                     }`}
                             >
                                 <span className="flex items-center gap-2 text-lg">
-                                    {analysisMode === 'debt' ? t('btn_debt') : analysisMode === 'hr' ? t('btn_hr') : t('button_analyze')} <Search className="w-5 h-5" />
+                                    {analysisMode === 'debt' ? t('btn_debt') : analysisMode === 'hr' ? t('btn_hr') : analysisMode === 'influencer' ? t('btn_influencer') : t('button_analyze')} <Search className="w-5 h-5" />
                                 </span>
                             </button>
                         )}
