@@ -1,6 +1,6 @@
 
 import { InstagramProfile, StrategicReport } from "../types";
-import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT, DEBT_COLLECTOR_PROMPT } from "../constants";
+import { PROFILE_ANALYSIS_PROMPT, IMAGE_ANALYSIS_PROMPT, DEBT_COLLECTOR_PROMPT, HR_RECRUITMENT_PROMPT } from "../constants";
 
 // --- CONFIGURATION ---
 
@@ -143,7 +143,8 @@ export const analyzeProfileWithGemini = async (
   profileData: InstagramProfile,
   onProgress?: ProgressCallback,
   language: 'ru' | 'en' = 'ru',
-  analysisType: 'standard' | 'debt' = 'standard'
+  analysisType: 'standard' | 'debt' | 'hr' = 'standard',
+  targetPosition?: string
 ): Promise<StrategicReport> => {
 
   // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
@@ -233,7 +234,13 @@ export const analyzeProfileWithGemini = async (
     ? "\n\nIMPORTANT: OUTPUT THE FINAL REPORT STRICTLY IN ENGLISH. TRANSLATE ALL SECTIONS, TITLES, AND INSIGHTS TO ENGLISH." 
     : "";
 
-  const selectedPrompt = analysisType === 'debt' ? DEBT_COLLECTOR_PROMPT : PROFILE_ANALYSIS_PROMPT;
+  let selectedPrompt = PROFILE_ANALYSIS_PROMPT;
+  
+  if (analysisType === 'debt') {
+      selectedPrompt = DEBT_COLLECTOR_PROMPT;
+  } else if (analysisType === 'hr') {
+      selectedPrompt = HR_RECRUITMENT_PROMPT.replace('{{TARGET_POSITION}}', targetPosition || "General Position");
+  }
 
   try {
     // Uses MODEL_REASONING for the big report

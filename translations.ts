@@ -76,8 +76,17 @@ export const translations = {
     btn_pdf: "СКАЧАТЬ PDF",
     btn_new: "НОВЫЙ СКАН",
     btn_debt: "OSINT / ВЗЫСКАНИЕ",
+    btn_hr: "HR / РЕКРУТМЕНТ",
     mode_standard: "Стандартный профиль",
-    mode_debt: "Коллекторский скоринг"
+    mode_debt: "Коллекторский скоринг",
+    mode_hr: "HR Анализ Кандидата",
+    hr_position_label: "Позиция кандидата",
+    hr_position_placeholder: "Например: Senior Frontend Dev",
+    stage_1_hr: "АНАЛИЗ SOFT SKILLS",
+    stage_2_hr: "ПРОВЕРКА CULTURAL FIT",
+    stage_3_hr: "ОЦЕНКА РИСКОВ",
+    loading_images_hr: "Поиск поведенческих паттернов...",
+    loading_final_hr: "Составление психологического портрета кандидата..."
   },
   en: {
     // App.tsx
@@ -154,8 +163,17 @@ export const translations = {
     btn_pdf: "SAVE PDF",
     btn_new: "NEW SCAN",
     btn_debt: "OSINT / DEBT COLLECTION",
+    btn_hr: "HR / RECRUITMENT",
     mode_standard: "Standard Profile",
-    mode_debt: "Debt Collection Scoring"
+    mode_debt: "Debt Collection Scoring",
+    mode_hr: "HR Candidate Analysis",
+    hr_position_label: "Candidate Position",
+    hr_position_placeholder: "E.g.: Sales Manager",
+    stage_1_hr: "SOFT SKILLS ANALYSIS",
+    stage_2_hr: "CULTURAL FIT CHECK",
+    stage_3_hr: "RISK ASSESSMENT",
+    loading_images_hr: "Scanning behavioral patterns...",
+    loading_final_hr: "Generating candidate psychological profile..."
   }
 };
 
