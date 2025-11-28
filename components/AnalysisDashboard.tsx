@@ -188,18 +188,33 @@ const renderMarkdown = (text: string) => {
     return renderedElements;
 };
 
+// ... (imports)
+
+// --- PRINT STYLES ---
+// Enhanced print styles for professional reports
 const PrintStyles = () => (
   <style>{`
     @media print {
-      @page { margin: 1.5cm; size: auto; }
+      @page { 
+        margin: 0;
+        size: A4; 
+      }
       body {
         background-color: white !important;
         background-image: none !important;
-        color: black !important;
+        color: #1f2937 !important; /* gray-800 */
+        font-family: ui-sans-serif, system-ui, sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-      nav, button, .fixed, .animate-pulse, .group-hover\\:opacity-100, .no-print {
+      
+      /* Hide UI elements */
+      nav, button, .fixed, .animate-pulse, .group-hover\\:opacity-100, .no-print, 
+      .chat-widget, .scroll-to-top {
         display: none !important;
       }
+
+      /* Layout Reset */
       #root, main, .min-h-screen, .relative {
         position: static !important;
         overflow: visible !important;
@@ -211,106 +226,200 @@ const PrintStyles = () => (
         padding: 0 !important;
         transform: none !important;
       }
-      .bg-cyber-800\\/20, .bg-cyber-800\\/40 {
-        background: white !important;
-        border: 1px solid #ddd !important;
+
+      /* Container Reset */
+      .max-w-6xl {
+        max-width: none !important;
+        padding: 0 40px !important;
       }
+
+      /* Component Overrides for White Paper Look */
+      .bg-cyber-800\\/20, .bg-cyber-800\\/40, .bg-cyber-900\\/30, .bg-cyber-900\\/50 {
+        background: white !important;
+        border: 1px solid #e5e7eb !important; /* gray-200 */
+        box-shadow: none !important;
+        border-radius: 8px !important;
+        margin-bottom: 20px !important;
+      }
+
+      /* Text Colors */
       .text-slate-200, .text-slate-300, .text-slate-400, .text-white {
-        color: #1f2937 !important; 
+        color: #374151 !important; /* gray-700 */
       }
       .text-cyber-accent {
-        color: #0e7490 !important; 
+        color: #0e7490 !important; /* cyan-700 - darker for print */
       }
-      .rounded-xl {
-        border: 1px solid #e5e7eb !important;
-        background: white !important;
-        box-shadow: none !important;
-        margin-bottom: 20px !important;
+      
+      /* Typography */
+      h1, h2, h3, h4 {
+        color: #111827 !important; /* gray-900 */
+        page-break-after: avoid;
+      }
+      p {
+        line-height: 1.5 !important;
+      }
+
+      /* Page Breaks */
+      .break-inside-avoid {
         break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      
+      /* Specific Elements */
+      .rounded-xl {
+        border-radius: 8px !important;
+      }
+      
+      /* Header for Print */
+      .print-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #0e7490;
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+        margin-top: 40px;
+      }
+      
+      .print-footer {
+        display: flex !important;
+        justify-content: space-between;
+        position: fixed;
+        bottom: 20px;
+        left: 40px;
+        right: 40px;
+        font-size: 10px;
+        color: #9ca3af;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 10px;
       }
     }
   `}</style>
 );
 
+interface ReportOptions {
+    title: string;
+    logoUrl: string;
+    showLogo: boolean;
+}
+
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, analysis, onReset }) => {
   const { t } = useLanguage();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [reportOptions, setReportOptions] = useState<ReportOptions>({
+      title: `CONFIDENTIAL DOSSIER: @${profile.username.toUpperCase()}`,
+      logoUrl: "",
+      showLogo: false
+  });
 
-  // Scroll to top on mount (instant, to look like a fresh page load)
-  useEffect(() => {
-      window.scrollTo(0, 0);
-  }, []);
+  // ... (rest of the component)
 
   const handlePrint = () => {
     window.print();
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedSection(id);
-    setTimeout(() => setCopiedSection(null), 2000);
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setReportOptions(prev => ({ ...prev, logoUrl: reader.result as string, showLogo: true }));
+          };
+          reader.readAsDataURL(file);
+      }
   };
-
-  // --- DATA PROCESSING FOR VISUALS ---
-  const posts = profile.posts || [];
-  const totalLikes = posts.reduce((acc, p) => acc + p.likesCount, 0);
-  const totalComments = posts.reduce((acc, p) => acc + p.commentsCount, 0);
-  const avgLikes = posts.length ? Math.round(totalLikes / posts.length) : 0;
-  const avgComments = posts.length ? Math.round(totalComments / posts.length) : 0;
-  
-  const er = profile.followersCount > 0 
-    ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2) 
-    : "0";
-
-  const chartData = [...posts].reverse().map((post) => ({
-    date: new Date(post.timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
-    likes: post.likesCount,
-    comments: post.commentsCount,
-    er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
-  }));
-
-  // --- EXTRACTION OF RICH DATA ---
-  const uniqueLocations = Array.from(new Set(posts.map(p => p.location?.name).filter(Boolean))) as string[];
-  const uniqueMusic = Array.from(new Set(posts.map(p => p.musicInfo ? `${p.musicInfo.artist} - ${p.musicInfo.song}` : null).filter(Boolean))) as string[];
-  const pinnedPostsCount = posts.filter(p => p.isPinned).length;
-  
-  const relatedProfiles = profile.relatedProfiles?.slice(0, 5) || [];
-
-  let frequency = "Н/Д";
-  if (posts.length > 1) {
-    const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
-    const lastDate = new Date(posts[0].timestamp).getTime();
-    const daysDiff = (lastDate - firstDate) / (1000 * 3600 * 24);
-    const avgDays = Math.round(daysDiff / (posts.length - 1));
-    frequency = avgDays === 0 ? "Ежедневно" : `Раз в ${avgDays} дн.`;
-  }
-
-  const isWarningSection = (title: string) => title.includes("ОШИБКИ") || title.includes("БАРЬЕРЫ") || title.includes("ОТСУТСТВИЯ");
-  const isActionSection = (title: string) => title.includes("ФРАЗЫ") || title.includes("ТРИГГЕРЫ") || title.includes("РЕКОМЕНДАЦИИ");
-  const isInsightSection = (title: string) => title.includes("НЕОЧЕВИДНЫЕ") || title.includes("ПАТТЕРНЫ");
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-out] pb-20 relative">
       <PrintStyles />
+
+      {/* --- PRINT ONLY HEADER --- */}
+      <div className="hidden print-header flex-row justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+              {reportOptions.showLogo && reportOptions.logoUrl ? (
+                  <img src={reportOptions.logoUrl} alt="Agency Logo" className="h-12 w-auto object-contain" />
+              ) : (
+                  <div className="text-2xl font-bold text-gray-900 tracking-wider">ZRETI<span className="text-cyan-600">.AI</span></div>
+              )}
+          </div>
+          <div className="text-right">
+              <h1 className="text-xl font-bold text-gray-900 uppercase">{reportOptions.title}</h1>
+              <div className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</div>
+          </div>
+      </div>
+
+      {/* --- SETTINGS MODAL (UI) --- */}
+      {showSettings && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print">
+              <div className="bg-slate-900 border border-cyber-700 rounded-xl w-full max-w-md p-6 shadow-2xl relative">
+                  <button 
+                      onClick={() => setShowSettings(false)}
+                      className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                  >
+                      <Check className="w-5 h-5" />
+                  </button>
+                  
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                      <Download className="w-5 h-5 text-cyber-accent" />
+                      Report Settings (White Label)
+                  </h3>
+                  
+                  <div className="space-y-4">
+                      <div>
+                          <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Report Title</label>
+                          <input 
+                              type="text" 
+                              value={reportOptions.title}
+                              onChange={(e) => setReportOptions(prev => ({ ...prev, title: e.target.value }))}
+                              className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyber-accent outline-none"
+                          />
+                      </div>
+                      
+                      <div>
+                          <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Agency Logo</label>
+                          <div className="flex items-center gap-4">
+                              {reportOptions.logoUrl && (
+                                  <img src={reportOptions.logoUrl} className="h-10 w-10 object-contain bg-white rounded p-1" />
+                              )}
+                              <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded border border-slate-700 text-xs flex items-center gap-2 transition-colors">
+                                  <span>Upload Image...</span>
+                                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                              </label>
+                          </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+                          <button 
+                              onClick={() => { setShowSettings(false); handlePrint(); }}
+                              className="bg-cyber-600 hover:bg-cyber-500 text-white font-bold py-2 px-4 rounded text-sm flex items-center gap-2"
+                          >
+                              <Download className="w-4 h-4" /> Save & Print PDF
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
       
       {/* Top Bar */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:border-gray-300">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:hidden">
+        {/* ... existing top bar content ... */}
         <div className="flex items-center gap-4">
             <ProfileAvatar 
               src={profile.profilePicUrl} 
               alt={profile.username} 
-              className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] print:shadow-none print:border-gray-400 object-cover"
+              className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] object-cover"
             />
             <div>
-                <h1 className="text-xl md:text-2xl font-sans font-bold text-white tracking-normal print:text-black">
+                <h1 className="text-xl md:text-2xl font-sans font-bold text-white tracking-normal">
                     <span className="text-cyber-accent/80 mr-2 font-mono text-lg md:text-xl">{t('dossier_prefix')}</span>
                     @{profile.username}
                 </h1>
-                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-2 print:text-gray-600">
+                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-2">
                     <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
                     <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
                     <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
-                    {/* Analyzed count */}
                     <span className="flex items-center gap-1 text-cyber-accent"><Check className="w-3 h-3" /> {posts.length} {t('analyzed_count')}</span>
                 </div>
             </div>
@@ -318,7 +427,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
 
         <div className="flex gap-2 no-print">
             <button 
-                onClick={handlePrint}
+                onClick={() => setShowSettings(true)}
                 className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
             >
                <Download className="w-4 h-4" />
@@ -333,6 +442,15 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
             </button>
         </div>
       </div>
+
+      {/* PRINT ONLY FOOTER */}
+      <div className="hidden print-footer">
+          <div>Report generated by ZRETI AI Analysis Engine</div>
+          <div>Page <span className="pageNumber"></span></div>
+      </div>
+
+      {/* ... rest of the dashboard components ... */}
+
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
