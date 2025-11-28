@@ -15,7 +15,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
     if (connections.length === 0) return null;
 
     return (
-        <div className="digital-circle-component bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-6 backdrop-blur-sm break-inside-avoid relative overflow-hidden print:!bg-white print:!border-slate-300">
+        <div className="digital-circle-component bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-6 pt-20 backdrop-blur-sm break-inside-avoid relative overflow-visible print:!bg-white print:!border-slate-300 print:!pt-6 print:!overflow-hidden">
 
             <div className="flex items-center gap-2 mb-6 relative z-10">
                 <GitMerge className="w-4 h-4 text-cyber-accent" />
@@ -90,11 +90,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                     
                     {/* Tooltip with detailed information */}
                     {user.details && (
-                        <div className={`absolute left-1/2 -translate-x-1/2 w-64 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)] print:hidden ${
-                            idx < 4 
-                                ? 'top-full mt-2' // For first row: show below
-                                : 'bottom-full mb-2' // For other rows: show above
-                        }`}>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)] print:hidden">
                             <div className="font-bold text-cyber-accent mb-2 text-xs">@{user.username}</div>
                             <div className="space-y-1">
                                 {user.details.tags > 0 && (
@@ -126,12 +122,8 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                                     </div>
                                 )}
                             </div>
-                            {/* Arrow - position depends on tooltip position */}
-                            {idx < 4 ? (
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-px border-4 border-transparent border-b-cyber-700"></div>
-                            ) : (
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-cyber-700"></div>
-                            )}
+                            {/* Arrow */}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-cyber-700"></div>
                         </div>
                     )}
                 </div>
