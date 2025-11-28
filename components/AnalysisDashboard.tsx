@@ -696,11 +696,30 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
               <BarChart data={chartData} barGap={2}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis hide domain={[0, 'auto']} />
+                <YAxis 
+                  yAxisId="likes" 
+                  orientation="left" 
+                  stroke="#22d3ee" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false}
+                  domain={[0, 'auto']}
+                  tick={{ fill: '#22d3ee' }}
+                />
+                <YAxis 
+                  yAxisId="comments" 
+                  orientation="right" 
+                  stroke="#a855f7" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false}
+                  domain={[0, 'auto']}
+                  tick={{ fill: '#a855f7' }}
+                />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34,211,238,0.05)' }} />
 
-                <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar yAxisId="likes" dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar yAxisId="comments" dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
