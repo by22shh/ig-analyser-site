@@ -188,8 +188,6 @@ const renderMarkdown = (text: string) => {
     return renderedElements;
 };
 
-// ... (imports)
-
 // --- PRINT STYLES ---
 // Enhanced print styles for professional reports
 const PrintStyles = () => (
@@ -313,10 +311,19 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       showLogo: false
   });
 
-  // ... (rest of the component)
+  // Scroll to top on mount (instant, to look like a fresh page load)
+  useEffect(() => {
+      window.scrollTo(0, 0);
+  }, []);
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSection(id);
+    setTimeout(() => setCopiedSection(null), 2000);
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,6 +336,44 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           reader.readAsDataURL(file);
       }
   };
+
+  // --- DATA PROCESSING FOR VISUALS ---
+  const posts = profile.posts || [];
+  const totalLikes = posts.reduce((acc, p) => acc + p.likesCount, 0);
+  const totalComments = posts.reduce((acc, p) => acc + p.commentsCount, 0);
+  const avgLikes = posts.length ? Math.round(totalLikes / posts.length) : 0;
+  const avgComments = posts.length ? Math.round(totalComments / posts.length) : 0;
+  
+  const er = profile.followersCount > 0 && posts.length > 0
+    ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2) 
+    : "0";
+
+  const chartData = [...posts].reverse().map((post) => ({
+    date: new Date(post.timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
+    likes: post.likesCount,
+    comments: post.commentsCount,
+    er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
+  }));
+
+  // --- EXTRACTION OF RICH DATA ---
+  const uniqueLocations = Array.from(new Set(posts.map(p => p.location?.name).filter(Boolean))) as string[];
+  const uniqueMusic = Array.from(new Set(posts.map(p => p.musicInfo ? `${p.musicInfo.artist} - ${p.musicInfo.song}` : null).filter(Boolean))) as string[];
+  const pinnedPostsCount = posts.filter(p => p.isPinned).length;
+  
+  const relatedProfiles = profile.relatedProfiles?.slice(0, 5) || [];
+
+  let frequency = "Н/Д";
+  if (posts.length > 1) {
+    const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
+    const lastDate = new Date(posts[0].timestamp).getTime();
+    const daysDiff = (lastDate - firstDate) / (1000 * 3600 * 24);
+    const avgDays = Math.round(daysDiff / (posts.length - 1));
+    frequency = avgDays === 0 ? "Ежедневно" : `Раз в ${avgDays} дн.`;
+  }
+
+  const isWarningSection = (title: string) => title.includes("ОШИБКИ") || title.includes("БАРЬЕРЫ") || title.includes("ОТСУТСТВИЯ");
+  const isActionSection = (title: string) => title.includes("ФРАЗЫ") || title.includes("ТРИГГЕРЫ") || title.includes("РЕКОМЕНДАЦИИ");
+  const isInsightSection = (title: string) => title.includes("НЕОЧЕВИДНЫЕ") || title.includes("ПАТТЕРНЫ");
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-out] pb-20 relative">
