@@ -510,12 +510,22 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const relatedProfiles = profile.relatedProfiles?.slice(0, 5) || [];
 
   let frequency = "Н/Д";
-  if (posts.length > 1) {
-    const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
-    const lastDate = new Date(posts[0].timestamp).getTime();
-    const daysDiff = (lastDate - firstDate) / (1000 * 3600 * 24);
-    const avgDays = Math.round(daysDiff / (posts.length - 1));
-    frequency = avgDays === 0 ? "Ежедневно" : `Раз в ${avgDays} дн.`;
+  let lastPostDate = "";
+  if (posts.length > 0) {
+    const lastPost = posts[0]; // Самый свежий пост
+    const date = new Date(lastPost.timestamp);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    lastPostDate = `${day}.${month}.${year}`;
+    
+    if (posts.length > 1) {
+      const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
+      const lastDate = new Date(posts[0].timestamp).getTime();
+      const daysDiff = (lastDate - firstDate) / (1000 * 3600 * 24);
+      const avgDays = Math.round(daysDiff / (posts.length - 1));
+      frequency = avgDays === 0 ? "Ежедневно" : `Раз в ${avgDays} дн.`;
+    }
   }
 
   const isWarningSection = (title: string) => title.includes("ОШИБКИ") || title.includes("БАРЬЕРЫ") || title.includes("ОТСУТСТВИЯ");
@@ -651,7 +661,12 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           icon={Activity}
           tooltip={t('er_tooltip')}
         />
-        <StatCard label={t('stat_freq')} value={frequency} subValue={t('stat_sub_consistency')} icon={Calendar} />
+        <StatCard 
+          label={t('stat_freq')} 
+          value={frequency} 
+          subValue={lastPostDate ? `${t('stat_sub_consistency')} • ${lastPostDate}` : t('stat_sub_consistency')} 
+          icon={Calendar} 
+        />
       </div>
 
       {/* Charts */}
