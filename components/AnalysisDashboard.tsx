@@ -684,11 +684,10 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t('stat_likes')} value={avgLikes.toLocaleString()} subValue={t('stat_sub_likes', { count: posts.length })} icon={Heart} />
-        <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} subValue={t('stat_sub_interaction')} icon={MessageCircle} />
+        <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} icon={MessageCircle} />
         <StatCard
           label={t('stat_er')}
           value={`${er}%`}
-          subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')}
           icon={Activity}
           tooltip={t('er_tooltip')}
         />
