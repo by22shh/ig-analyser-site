@@ -208,8 +208,26 @@ const PrintStyles = () => (
       
       /* Hide UI elements */
       nav, button, .fixed, .animate-pulse, .group-hover\\:opacity-100, .no-print, 
-      .chat-widget, .scroll-to-top {
+      .chat-widget, .scroll-to-top, 
+      input[type="file"],
+      label[for*="file"],
+      /* Hide top bar with buttons */
+      .border-b.border-cyber-700.pb-6,
+      /* Hide any element with print:hidden class from Tailwind */
+      [class~="print:hidden"] {
         display: none !important;
+      }
+      
+      /* Hide modal overlays and settings */
+      .fixed.inset-0 {
+        display: none !important;
+      }
+      
+      /* Ensure Tailwind print:hidden works */
+      @media print {
+        [class*="print\\:hidden"] {
+          display: none !important;
+        }
       }
 
       /* Layout Reset */
@@ -448,7 +466,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       )}
       
       {/* Top Bar */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:hidden">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:hidden no-print">
         {/* ... existing top bar content ... */}
         <div className="flex items-center gap-4">
             <ProfileAvatar 
@@ -523,13 +541,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                     <BarChart data={chartData} barGap={2}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis hide domain={[0, 'auto']} />
                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34,211,238,0.05)'}} />
-                        {/* Use two Y axes to handle scale difference between likes and comments */}
-                        <YAxis yAxisId="left" orientation="left" hide domain={[0, 'auto']} />
-                        <YAxis yAxisId="right" orientation="right" hide domain={[0, 'auto']} />
                         
-                        <Bar yAxisId="left" dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Bar yAxisId="right" dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
                     </BarChart>
                   </ResponsiveContainer>
                </div>
