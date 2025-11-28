@@ -55,6 +55,11 @@ export const translations = {
     badge_active: "Активен",
     badge_mentioned: "Упомянут",
     circle_score_label: "Балл",
+    circle_tooltip_tags: "Отмечен в постах",
+    circle_tooltip_comments: "Комментариев",
+    circle_tooltip_mentions: "Упоминаний",
+    circle_tooltip_posts: "Постов с взаимодействием",
+    circle_tooltip_last: "Последнее взаимодействие",
 
     // DigitalFootprint
     footprint_title: "Цифровой след и контекст",
@@ -152,6 +157,11 @@ export const translations = {
     badge_active: "Active",
     badge_mentioned: "Mentioned",
     circle_score_label: "Score",
+    circle_tooltip_tags: "Tagged in posts",
+    circle_tooltip_comments: "Comments",
+    circle_tooltip_mentions: "Mentions",
+    circle_tooltip_posts: "Posts with interaction",
+    circle_tooltip_last: "Last interaction",
 
     // DigitalFootprint
     footprint_title: "Digital Footprint & Context",

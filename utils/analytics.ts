@@ -5,6 +5,15 @@ export interface InteractionUser {
   count: number;
   type: 'tagged' | 'commenter' | 'mixed' | 'mentioned';
   lastInteraction?: string; // date
+  details?: {
+    tags: number;
+    comments: number;
+    mentions: number;
+    commentLength: number;
+    postCount: number;
+    lastDate: string;
+    firstDate: string;
+  };
 }
 
 // Configuration for scoring weights
