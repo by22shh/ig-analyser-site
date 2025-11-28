@@ -71,12 +71,13 @@ const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const postData = payload && payload.length > 0 ? payload[0].payload : null;
     return (
       <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
-        {payload[0]?.payload?.url && (
+        {postData?.url && (
             <div className="text-[10px] text-cyber-accent mb-2 truncate max-w-[200px] border-b border-cyber-accent/20 pb-1">
-                {payload[0].payload.url.replace('https://www.instagram.com/p/', 'Post: ').replace(/\/$/, '')}
+                {postData.url.replace('https://www.instagram.com/p/', 'Post: ').replace(/\/$/, '')}
             </div>
         )}
         {payload.map((entry: any, index: number) => (
