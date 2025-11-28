@@ -65,7 +65,10 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
 
     // 1. Analyze Tagged Users (highest weight - being in photo)
     if (post.taggedUsers && post.taggedUsers.length > 0) {
-        post.taggedUsers.forEach(user => {
+        post.taggedUsers.forEach(taggedUser => {
+            // Normalize username to lowercase for consistency
+            const user = taggedUser?.toLowerCase().trim();
+            if (!user) return; // Skip empty usernames
             if (!interactions[user]) {
                 interactions[user] = { 
                   tags: 0, 
@@ -120,13 +123,18 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
     // 3. Analyze Commenters (with quality scoring)
     if (post.latestComments && post.latestComments.length > 0) {
         post.latestComments.forEach(comment => {
+            // Skip if no username
+            if (!comment.ownerUsername) return;
+            
             // Exclude the post owner themselves (case-insensitive)
-            if (comment.ownerUsername?.toLowerCase() === profile.username.toLowerCase()) return;
+            if (comment.ownerUsername.toLowerCase() === profile.username.toLowerCase()) return;
             
             // Filter spam comments
             if (isSpamComment(comment.text || '')) return;
 
-            const user = comment.ownerUsername;
+            // Normalize username to lowercase for consistency
+            const user = comment.ownerUsername.toLowerCase().trim();
+            if (!user) return; // Skip empty usernames
             if (!interactions[user]) {
                 interactions[user] = { 
                   tags: 0, 
