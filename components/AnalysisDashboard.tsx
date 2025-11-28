@@ -442,7 +442,7 @@ const PrintStyles = () => (
         display: flex !important;
         justify-content: space-between;
         position: fixed;
-        bottom: 0;
+        bottom: -20mm;
         left: 40px;
         right: 40px;
         font-size: 10px;
