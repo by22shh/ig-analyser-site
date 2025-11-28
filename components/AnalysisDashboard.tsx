@@ -664,7 +664,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
         <StatCard 
           label={t('stat_freq')} 
           value={frequency} 
-          subValue={lastPostDate ? `${t('stat_sub_consistency')} • ${lastPostDate}` : t('stat_sub_consistency')} 
+          subValue={lastPostDate ? `${t('stat_last_post')}: ${lastPostDate}` : ''} 
           icon={Calendar} 
         />
       </div>
