@@ -155,6 +155,7 @@ export const fetchInstagramData = async (
                     : [],
                 timestamp: item.timestamp || new Date().toISOString(),
                 displayUrl: item.displayUrl || item.url || "https://picsum.photos/400/400",
+                url: item.url || (item.shortCode ? `https://www.instagram.com/p/${item.shortCode}/` : undefined),
                 
                 // New Fields
                 videoViewCount: item.videoViewCount || item.videoPlayCount,

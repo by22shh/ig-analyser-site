@@ -17,6 +17,7 @@ export interface InstagramPost {
   latestComments: InstagramComment[]; 
   timestamp: string;
   displayUrl: string;
+  url?: string; // Permalink to the post
   videoViewCount?: number;
   videoDuration?: number;
   

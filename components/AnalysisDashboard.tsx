@@ -74,6 +74,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
+        {payload[0]?.payload?.url && (
+            <div className="text-[10px] text-cyber-accent mb-2 truncate max-w-[200px] border-b border-cyber-accent/20 pb-1">
+                {payload[0].payload.url.replace('https://www.instagram.com/p/', 'Post: ').replace(/\/$/, '')}
+            </div>
+        )}
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-xs font-mono">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
@@ -513,7 +518,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
         date: `${day}.${month}.${year}`,
         likes: post.likesCount,
         comments: post.commentsCount,
-        er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
+        er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0,
+        url: post.url
       };
     });
 
@@ -718,8 +724,12 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34,211,238,0.05)' }} />
 
-                <Bar yAxisId="likes" dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                <Bar yAxisId="comments" dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar yAxisId="likes" dataKey="likes" name={t('chart_likes')} fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(data) => {
+                    if (data.url) window.open(data.url, '_blank');
+                }} style={{ cursor: 'pointer' }} />
+                <Bar yAxisId="comments" dataKey="comments" name={t('chart_comments')} fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(data) => {
+                    if (data.url) window.open(data.url, '_blank');
+                }} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
