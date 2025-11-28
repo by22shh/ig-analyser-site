@@ -48,24 +48,22 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                             <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent truncate print:!text-black print:!whitespace-normal print:!overflow-visible print:!truncate">
                                 @{user.username}
                             </div>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    {user.type === 'mixed' && (
-                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0 print:!text-purple-700 print:!border-purple-300 print:!bg-purple-50">
-                                            {t('badge_close')}
-                                        </span>
-                                    )}
-                                    {user.type === 'tagged' && (
-                                        <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
-                                            <AtSign className="w-3 h-3" /> {t('badge_tagged')}
-                                        </span>
-                                    )}
-                                    {user.type === 'commenter' && (
-                                        <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
-                                            <MessageCircle className="w-3 h-3" /> {t('badge_active')}
-                                        </span>
-                                    )}
-                                </div>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {user.type === 'mixed' && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0 print:!text-purple-700 print:!border-purple-300 print:!bg-purple-50">
+                                        {t('badge_close')}
+                                    </span>
+                                )}
+                                {user.type === 'tagged' && (
+                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
+                                        <AtSign className="w-3 h-3" /> {t('badge_tagged')}
+                                    </span>
+                                )}
+                                {user.type === 'commenter' && (
+                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
+                                        <MessageCircle className="w-3 h-3" /> {t('badge_active')}
+                                    </span>
+                                )}
                                 <span className="text-[9px] text-slate-600 font-mono shrink-0 print:!text-slate-500">
                                     x{user.count}
                                 </span>
