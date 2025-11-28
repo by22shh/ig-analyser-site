@@ -246,7 +246,7 @@ const PrintStyles = () => (
       /* Container Reset */
       .max-w-6xl {
         max-width: none !important;
-        padding: 0 40px !important;
+        padding: 0 50px !important;
       }
 
       /* Component Overrides for White Paper Look */
@@ -256,6 +256,23 @@ const PrintStyles = () => (
         box-shadow: none !important;
         border-radius: 8px !important;
         margin-bottom: 20px !important;
+        padding: 24px !important; /* Increased padding for all cards */
+      }
+      
+      /* Increase padding for all rounded-xl containers (sections) */
+      .rounded-xl {
+        padding: 28px !important; /* Increased from default p-6 (24px) */
+        border-radius: 8px !important;
+      }
+      
+      /* Stat cards - increase padding */
+      [class*="p-4"] {
+        padding: 20px !important; /* Increased from 16px */
+      }
+      
+      /* Sections with p-6 - ensure they have enough padding */
+      [class*="p-6"] {
+        padding: 28px !important; /* Increased from 24px */
       }
 
       /* Text Colors - ensure all text is readable */
@@ -293,6 +310,7 @@ const PrintStyles = () => (
       .digital-circle-component {
         background: white !important;
         border: 2px solid #9ca3af !important;
+        padding: 24px !important; /* Increased padding */
       }
       
       /* All cards in Digital Circle */
@@ -302,6 +320,8 @@ const PrintStyles = () => (
         display: flex !important;
         justify-content: flex-start !important;
         text-align: left !important;
+        padding: 16px !important; /* Increased padding for cards */
+        margin: 8px 0 !important; /* Add spacing between cards */
       }
       
       /* All text elements - force dark color */
@@ -346,20 +366,31 @@ const PrintStyles = () => (
       h1, h2, h3, h4 {
         color: #111827 !important; /* gray-900 */
         page-break-after: avoid;
+        margin-top: 0 !important; /* Remove top margin to prevent extra space */
+        margin-bottom: 12px !important; /* Consistent bottom margin */
       }
       p {
         line-height: 1.5 !important;
+        margin-top: 0 !important;
+        margin-bottom: 8px !important; /* Consistent spacing */
+      }
+      
+      /* Lists spacing */
+      ul, ol {
+        padding-left: 24px !important; /* Increased from default */
+        margin-top: 8px !important;
+        margin-bottom: 12px !important;
+      }
+      
+      li {
+        margin-bottom: 4px !important;
+        padding-left: 4px !important; /* Extra space for list items */
       }
 
       /* Page Breaks */
       .break-inside-avoid {
         break-inside: avoid !important;
         page-break-inside: avoid !important;
-      }
-      
-      /* Specific Elements */
-      .rounded-xl {
-        border-radius: 8px !important;
       }
       
       /* Header for Print */
