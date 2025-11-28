@@ -64,8 +64,13 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                                         <MessageCircle className="w-3 h-3" /> {t('badge_active')}
                                     </span>
                                 )}
+                                {user.type === 'mentioned' && (
+                                    <span className="flex items-center gap-1 text-[9px] text-cyan-500 shrink-0 print:!text-cyan-700">
+                                        <AtSign className="w-3 h-3" /> {t('badge_mentioned')}
+                                    </span>
+                                )}
                                 <span className="text-[9px] text-slate-600 font-mono shrink-0 print:!text-slate-500">
-                                    x{user.count}
+                                    {user.count.toFixed(1)}
                                 </span>
                             </div>
                         </div>
