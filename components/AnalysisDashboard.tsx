@@ -194,7 +194,7 @@ const PrintStyles = () => (
   <style>{`
     @media print {
       @page { 
-        margin: 0;
+        margin: 20mm 0;
         size: A4; 
       }
       body {
