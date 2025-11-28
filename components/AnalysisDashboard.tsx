@@ -317,77 +317,78 @@ const PrintStyles = () => (
         display: flex !important; /* Preserve flex layout */
       }
       
-      /* Digital Circle - Make everything readable */
+      /* Digital Circle - Simple list for print */
       .digital-circle-component {
         background: white !important;
-        border: 2px solid #9ca3af !important;
-        padding: 24px !important; /* Increased padding */
+        border: none !important;
+        padding: 20px 0 !important;
       }
       
-      /* All cards in Digital Circle - preserve grid layout */
+      /* Hide grid layout in print - convert to simple list */
+      .digital-circle-component > div[class*="grid"] {
+        display: block !important;
+        grid-template-columns: none !important;
+        gap: 0 !important;
+      }
+      
+      /* Convert cards to simple list items - show only username */
       .digital-circle-component a {
-        background: #f9fafb !important;
-        border: 1px solid #d1d5db !important;
-        display: flex !important;
-        justify-content: flex-start !important;
-        text-align: left !important;
-        padding: 12px !important; /* Increased padding for cards */
-        overflow: visible !important; /* Ensure content is visible */
+        background: transparent !important;
+        border: none !important;
+        display: block !important;
+        padding: 4px 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
       }
       
-      /* Fix overflow for text containers in Digital Circle */
-      .digital-circle-component [class*="overflow-hidden"] {
+      /* Hide avatar container */
+      .digital-circle-component a > div:first-child {
+        display: none !important;
+      }
+      
+      /* Show username container */
+      .digital-circle-component a > div[class*="flex-1"] {
+        display: block !important;
         overflow: visible !important;
+        width: 100% !important;
       }
       
-      /* All text elements - force dark color */
-      .digital-circle-component p,
-      .digital-circle-component div,
-      .digital-circle-component span,
-      .digital-circle-component a {
+      /* Show only username text, hide activity badges */
+      .digital-circle-component a > div[class*="flex-1"] > div:first-child {
+        display: block !important;
         color: #111827 !important;
-        text-align: left !important;
-      }
-      
-      /* Ensure all divs in Digital Circle cards are visible */
-      .digital-circle-component a > div {
-        overflow: visible !important;
-        min-width: 0 !important;
-      }
-      
-      /* Username text - make sure it's visible */
-      .digital-circle-component a div[class*="flex-1"] {
-        overflow: visible !important;
-      }
-      
-      .digital-circle-component a div[class*="flex-1"] > div {
-        overflow: visible !important;
+        font-size: 12px !important;
+        font-weight: normal !important;
         white-space: normal !important;
+        overflow: visible !important;
         text-overflow: clip !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
       
-      /* Keep headings slightly different */
+      /* Hide activity badges row */
+      .digital-circle-component a > div[class*="flex-1"] > div:last-child {
+        display: none !important;
+      }
+      
+      /* Hide all icons, avatars, badges */
+      .digital-circle-component svg,
+      .digital-circle-component [class*="rounded-full"],
+      .digital-circle-component span {
+        display: none !important;
+      }
+      
+      /* Keep headings */
       .digital-circle-component h3 {
-        color: #0e7490 !important; /* cyan for heading */
+        color: #0e7490 !important;
+        margin-bottom: 12px !important;
       }
       
-      /* Badges with purple */
-      .digital-circle-component span[class*="purple"] {
-        background: #ede9fe !important;
-        color: #5b21b6 !important;
-        border-color: #c4b5fd !important;
-      }
-      
-      /* Avatars and icons */
-      .digital-circle-component div[class*="rounded-full"] {
-        background: #e5e7eb !important;
-        border-color: #9ca3af !important;
-      }
-      
-      /* SVG icons - make them visible */
-      .digital-circle-component svg {
-        color: #374151 !important;
-        fill: #374151 !important;
+      /* Show username text (override span hiding) */
+      .digital-circle-component a > div[class*="flex-1"] > div:first-child {
+        display: block !important;
       }
       
       /* Ensure username text is readable */
