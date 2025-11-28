@@ -30,9 +30,9 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                         href={`https://instagram.com/${user.username}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center gap-3 bg-slate-900/40 hover:bg-slate-800/60 border border-white/5 hover:border-cyber-accent/30 p-3 rounded-lg transition-all duration-300 print:!bg-white print:!border-slate-200"
+                        className="group flex items-center gap-3 bg-slate-900/40 hover:bg-slate-800/60 border border-white/5 hover:border-cyber-accent/30 p-3 pr-4 rounded-lg transition-all duration-300 print:!bg-white print:!border-slate-200"
                     >
-                        <div className="relative">
+                        <div className="relative shrink-0">
                             {/* Avatar Placeholder */}
                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-700 group-hover:border-cyber-accent/50 transition-colors print:!bg-slate-100 print:!border-slate-300 print:!text-slate-600">
                                 <Users className="w-5 h-5" />
@@ -44,27 +44,27 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                             </div>
                         </div>
 
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent truncate print:!text-black print:!whitespace-normal print:!overflow-visible">
                                 @{user.username}
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 {user.type === 'mixed' && (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 print:!text-purple-700 print:!border-purple-300 print:!bg-purple-50">
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0 print:!text-purple-700 print:!border-purple-300 print:!bg-purple-50">
                                         {t('badge_close')}
                                     </span>
                                 )}
                                 {user.type === 'tagged' && (
-                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 print:!text-slate-600">
+                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
                                         <AtSign className="w-3 h-3" /> {t('badge_tagged')}
                                     </span>
                                 )}
                                 {user.type === 'commenter' && (
-                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 print:!text-slate-600">
+                                    <span className="flex items-center gap-1 text-[9px] text-slate-500 shrink-0 print:!text-slate-600">
                                         <MessageCircle className="w-3 h-3" /> {t('badge_active')}
                                     </span>
                                 )}
-                                <span className="text-[9px] text-slate-600 ml-auto font-mono print:!text-slate-500">
+                                <span className="text-[9px] text-slate-600 font-mono shrink-0 print:!text-slate-500">
                                     x{user.count}
                                 </span>
                             </div>
