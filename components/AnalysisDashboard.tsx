@@ -693,8 +693,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           </div>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+              <BarChart data={chartData} barGap={2} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={true} strokeOpacity={0.3} />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis 
                   yAxisId="likes" 
