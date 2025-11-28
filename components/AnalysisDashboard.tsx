@@ -286,12 +286,52 @@ const PrintStyles = () => (
         color: #111827 !important; /* gray-900 */
         pointer-events: none !important;
         cursor: default !important;
+        display: block !important; /* Ensure link content is visible */
       }
       
-      /* Make text in dark containers readable (Digital Circle) */
-      [class*="bg-slate-900"] [class*="text-slate-"],
-      [class*="bg-cyber-800"] [class*="text-slate-"] {
-        color: #111827 !important; /* gray-900 - dark and readable */
+      /* Digital Circle - Make everything readable */
+      .digital-circle-component {
+        background: white !important;
+        border: 2px solid #9ca3af !important;
+      }
+      
+      /* All cards in Digital Circle */
+      .digital-circle-component a {
+        background: #f9fafb !important;
+        border: 1px solid #d1d5db !important;
+        display: flex !important;
+      }
+      
+      /* All text elements - force dark color */
+      .digital-circle-component p,
+      .digital-circle-component div,
+      .digital-circle-component span,
+      .digital-circle-component a {
+        color: #111827 !important;
+      }
+      
+      /* Keep headings slightly different */
+      .digital-circle-component h3 {
+        color: #0e7490 !important; /* cyan for heading */
+      }
+      
+      /* Badges with purple */
+      .digital-circle-component span[class*="purple"] {
+        background: #ede9fe !important;
+        color: #5b21b6 !important;
+        border-color: #c4b5fd !important;
+      }
+      
+      /* Avatars and icons */
+      .digital-circle-component div[class*="rounded-full"] {
+        background: #e5e7eb !important;
+        border-color: #9ca3af !important;
+      }
+      
+      /* SVG icons - make them visible */
+      .digital-circle-component svg {
+        color: #374151 !important;
+        fill: #374151 !important;
       }
       
       /* Ensure username text is readable */

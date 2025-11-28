@@ -15,7 +15,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
   if (connections.length === 0) return null;
 
   return (
-    <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-6 backdrop-blur-sm break-inside-avoid relative overflow-hidden">
+    <div className="digital-circle-component bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-6 backdrop-blur-sm break-inside-avoid relative overflow-hidden">
       
       <div className="flex items-center gap-2 mb-6 relative z-10">
         <GitMerge className="w-4 h-4 text-cyber-accent" />
