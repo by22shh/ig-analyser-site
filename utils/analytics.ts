@@ -21,10 +21,10 @@ const SCORING_WEIGHTS = {
 const MIN_COMMENT_LENGTH = 3;
 
 // Calculate recency multiplier (1.0 for old, 1.5 for recent)
-const getRecencyMultiplier = (postDate: Date, oldestPostDate: Date): number => {
-  const daysSinceOldest = (postDate.getTime() - oldestPostDate.getTime()) / (1000 * 60 * 60 * 24);
-  const totalDays = 30; // We analyze last 30 posts, roughly 30-90 days range
-  if (daysSinceOldest < totalDays) {
+const getRecencyMultiplier = (postDate: Date, newestPostDate: Date): number => {
+  const daysSinceNewest = (newestPostDate.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24);
+  const recentThreshold = 30; // Posts within last 30 days get boost
+  if (daysSinceNewest <= recentThreshold) {
     return SCORING_WEIGHTS.recency; // Recent interactions get boost
   }
   return 1.0; // Older interactions
@@ -40,6 +40,11 @@ const isSpamComment = (commentText: string): boolean => {
 };
 
 export const analyzeConnections = (profile: InstagramProfile): InteractionUser[] => {
+  // Early return if no posts
+  if (!profile.posts || profile.posts.length === 0) {
+    return [];
+  }
+
   const interactions: Record<string, { 
     tags: number; 
     comments: number; 
@@ -50,13 +55,13 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
     firstDate: string;
   }> = {};
 
-  // Find oldest post date for recency calculation
-  const postDates = profile.posts.map(p => new Date(p.timestamp)).sort((a, b) => a.getTime() - b.getTime());
-  const oldestPostDate = postDates[0] || new Date();
+  // Find newest post date for recency calculation
+  const postDates = profile.posts.map(p => new Date(p.timestamp)).sort((a, b) => b.getTime() - a.getTime());
+  const newestPostDate = postDates[0] || new Date();
 
   profile.posts.forEach(post => {
     const postDate = new Date(post.timestamp);
-    const recencyMultiplier = getRecencyMultiplier(postDate, oldestPostDate);
+    const recencyMultiplier = getRecencyMultiplier(postDate, newestPostDate);
 
     // 1. Analyze Tagged Users (highest weight - being in photo)
     if (post.taggedUsers && post.taggedUsers.length > 0) {
@@ -87,8 +92,8 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
     if (post.mentions && post.mentions.length > 0) {
         post.mentions.forEach(mentionedUser => {
             // Normalize username (remove @ if present)
-            const user = mentionedUser.replace('@', '').toLowerCase();
-            if (user === profile.username.toLowerCase()) return; // Skip self-mentions
+            const user = mentionedUser.replace('@', '').toLowerCase().trim();
+            if (!user || user === profile.username.toLowerCase()) return; // Skip empty and self-mentions
             
             if (!interactions[user]) {
                 interactions[user] = { 
@@ -106,14 +111,17 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
             if (new Date(post.timestamp) > new Date(interactions[user].lastDate)) {
                 interactions[user].lastDate = post.timestamp;
             }
+            if (new Date(post.timestamp) < new Date(interactions[user].firstDate)) {
+                interactions[user].firstDate = post.timestamp;
+            }
         });
     }
 
     // 3. Analyze Commenters (with quality scoring)
     if (post.latestComments && post.latestComments.length > 0) {
         post.latestComments.forEach(comment => {
-            // Exclude the post owner themselves
-            if (comment.ownerUsername === profile.username) return;
+            // Exclude the post owner themselves (case-insensitive)
+            if (comment.ownerUsername?.toLowerCase() === profile.username.toLowerCase()) return;
             
             // Filter spam comments
             if (isSpamComment(comment.text || '')) return;
@@ -155,11 +163,11 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
 
   // Convert to array and calculate final scores
   const sortedUsers = Object.entries(interactions).map(([username, data]) => {
-      // Determine type
+      // Determine type (priority: mixed > tagged > mentioned > commenter)
       let type: 'tagged' | 'commenter' | 'mixed' | 'mentioned' = 'commenter';
-      if (data.tags > 0 && data.comments > 0) type = 'mixed';
+      if ((data.tags > 0 || data.mentions > 0) && data.comments > 0) type = 'mixed';
       else if (data.tags > 0) type = 'tagged';
-      else if (data.mentions > 0 && data.comments === 0) type = 'mentioned';
+      else if (data.mentions > 0) type = 'mentioned';
       
       // Calculate total score with bonuses
       const baseScore = data.tags + data.comments + data.mentions;
