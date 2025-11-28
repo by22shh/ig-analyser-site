@@ -70,7 +70,7 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                                     </span>
                                 )}
                                 <span className="text-[9px] text-slate-600 font-mono shrink-0 print:!text-slate-500">
-                                    {isNaN(user.count) || !isFinite(user.count) ? '0.0' : user.count.toFixed(1)}
+                                    {t('circle_score_label')}: {isNaN(user.count) || !isFinite(user.count) ? '0.0' : user.count.toFixed(1)}
                                 </span>
                             </div>
                         </div>

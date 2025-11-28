@@ -54,6 +54,7 @@ export const translations = {
     badge_tagged: "Отмечен",
     badge_active: "Активен",
     badge_mentioned: "Упомянут",
+    circle_score_label: "Балл",
 
     // DigitalFootprint
     footprint_title: "Цифровой след и контекст",
@@ -150,6 +151,7 @@ export const translations = {
     badge_tagged: "Tagged",
     badge_active: "Active",
     badge_mentioned: "Mentioned",
+    circle_score_label: "Score",
 
     // DigitalFootprint
     footprint_title: "Digital Footprint & Context",
