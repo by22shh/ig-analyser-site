@@ -194,7 +194,7 @@ const PrintStyles = () => (
   <style>{`
     @media print {
       @page { 
-        margin: 20mm 0;
+        margin: 20mm 0 30mm 0;
         size: A4; 
       }
       body {
@@ -442,7 +442,7 @@ const PrintStyles = () => (
         display: flex !important;
         justify-content: space-between;
         position: fixed;
-        bottom: 20px;
+        bottom: 0;
         left: 40px;
         right: 40px;
         font-size: 10px;
