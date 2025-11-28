@@ -110,27 +110,63 @@ const renderMarkdown = (text: string) => {
   let currentList: React.ReactNode[] = [];
 
   const processInlineStyles = (str: string) => {
-    // Pass 1: Bold (**...**)
-    const parts = str.split(/(\*\*.*?\*\*)/g);
+    // Pass 1: Links [text](url)
+    // We split by the regex capturing group to keep the separators
+    const parts = str.split(/(\[[^\]]+\]\([^)]+\))/g);
+    
     return parts.map((part, i) => {
-      if (part.startsWith('**') && part.length >= 4 && part.endsWith('**')) {
-        return <strong key={`bold-${i}`} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
+      // Check if this part is a link
+      const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        return (
+          <a 
+            key={`link-${i}`} 
+            href={linkMatch[2]} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-cyber-accent hover:underline hover:text-cyan-400 transition-colors cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {linkMatch[1]}
+          </a>
+        );
       }
 
-      // Pass 2: Italic (*...*)
-      const subParts = part.split(/(\*.*?\*)/g);
+      // Pass 2: Bold (**...**)
+      const subParts = part.split(/(\*\*.*?\*\*)/g);
       return subParts.map((subPart, j) => {
-        if (subPart.startsWith('*') && subPart.length >= 2 && subPart.endsWith('*')) {
-          if (subPart === '**') return subPart; // Ignore empty bold treated as italic
-          return <em key={`italic-${i}-${j}`} className="italic text-slate-300 print:text-slate-700">{subPart.slice(1, -1)}</em>;
+        if (subPart.startsWith('**') && subPart.length >= 4 && subPart.endsWith('**')) {
+          return <strong key={`bold-${i}-${j}`} className="font-bold text-white print:text-black">{subPart.slice(2, -2)}</strong>;
         }
-        return subPart;
+
+        // Pass 3: Italic (*...* OR _..._)
+        const subSubParts = subPart.split(/(\*.*?\*|_.*?_)/g);
+        return subSubParts.map((subSubPart, k) => {
+          if (
+            (subSubPart.startsWith('*') && subSubPart.endsWith('*') && subSubPart.length >= 2) ||
+            (subSubPart.startsWith('_') && subSubPart.endsWith('_') && subSubPart.length >= 2)
+          ) {
+            if (subSubPart === '**' || subSubPart === '__') return subSubPart;
+            return <em key={`italic-${i}-${j}-${k}`} className="italic text-slate-300 print:text-slate-700">{subSubPart.slice(1, -1)}</em>;
+          }
+          return subSubPart;
+        });
       });
     });
   };
 
   lines.forEach((line, index) => {
     const trimmed = line.trim();
+
+    // Horizontal Rule
+    if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+      if (currentList.length > 0) {
+        renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+        currentList = [];
+      }
+      renderedElements.push(<hr key={`hr-${index}`} className="my-4 border-cyber-700/50 print:border-gray-300" />);
+      return;
+    }
 
     if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || (trimmed.startsWith('* ') && !trimmed.endsWith('*'))) {
       const content = trimmed.replace(/^[-•*]\s+/, '');
@@ -158,7 +194,6 @@ const renderMarkdown = (text: string) => {
       }
 
       let content = trimmed;
-      // Fix unclosed bold
       if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
         content += "**";
       }
