@@ -40,10 +40,12 @@ const isSpamComment = (commentText: string): boolean => {
 };
 
 export const analyzeConnections = (profile: InstagramProfile): InteractionUser[] => {
-  // Early return if no posts
-  if (!profile.posts || profile.posts.length === 0) {
+  // Early return if no posts or no username
+  if (!profile.posts || profile.posts.length === 0 || !profile.username) {
     return [];
   }
+  
+  const profileUsernameLower = profile.username.toLowerCase();
 
   const interactions: Record<string, { 
     tags: number; 
@@ -94,9 +96,11 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
     // 2. Analyze Mentions in Captions (@username)
     if (post.mentions && post.mentions.length > 0) {
         post.mentions.forEach(mentionedUser => {
+            // Skip if empty
+            if (!mentionedUser) return;
             // Normalize username (remove @ if present)
             const user = mentionedUser.replace('@', '').toLowerCase().trim();
-            if (!user || user === profile.username.toLowerCase()) return; // Skip empty and self-mentions
+            if (!user || user === profileUsernameLower) return; // Skip empty and self-mentions
             
             if (!interactions[user]) {
                 interactions[user] = { 
@@ -127,7 +131,7 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
             if (!comment.ownerUsername) return;
             
             // Exclude the post owner themselves (case-insensitive)
-            if (comment.ownerUsername.toLowerCase() === profile.username.toLowerCase()) return;
+            if (comment.ownerUsername.toLowerCase() === profileUsernameLower) return;
             
             // Filter spam comments
             if (isSpamComment(comment.text || '')) return;
@@ -183,10 +187,13 @@ export const analyzeConnections = (profile: InstagramProfile): InteractionUser[]
       const regularityBonus = data.postCount >= 5 ? SCORING_WEIGHTS.regularity * (data.postCount - 4) : 0; // Bonus for interacting across many posts
       
       const totalScore = baseScore + qualityBonus + regularityBonus;
+      
+      // Ensure score is a valid number
+      const finalScore = isNaN(totalScore) || !isFinite(totalScore) ? 0 : totalScore;
 
       return {
           username,
-          count: Math.round(totalScore * 10) / 10, // Round to 1 decimal
+          count: Math.round(finalScore * 10) / 10, // Round to 1 decimal
           type,
           lastInteraction: data.lastDate,
           details: data
