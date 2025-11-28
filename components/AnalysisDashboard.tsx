@@ -76,9 +76,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
         {postData?.url && (
-            <div className="text-[10px] text-cyber-accent mb-2 truncate max-w-[200px] border-b border-cyber-accent/20 pb-1">
+            <a 
+              href={postData.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block text-[10px] text-cyber-accent mb-2 truncate max-w-[200px] border-b border-cyber-accent/20 pb-1 hover:text-white hover:border-white/50 transition-colors"
+            >
                 {postData.url.replace('https://www.instagram.com/p/', 'Post: ').replace(/\/$/, '')}
-            </div>
+            </a>
         )}
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-xs font-mono">
