@@ -14,12 +14,12 @@ const SITE_NAME = "ZRETI Instagram Analyzer";
 // 1. VISION MODEL: Gemini 2.0 Flash
 // Используется для анализа изображений.
 // Почему: Самая быстрая мультимодальная модель. Отлично считывает детали, но работает быстро, что критично для пачки из 10-12 фото.
-const MODEL_VISION = "google/gemini-3-pro-preview"; 
+const MODEL_VISION = "google/gemini-3-pro-preview";
 
 // 2. REASONING MODEL: Gemini 2.0 Pro (Experimental)
 // Используется для составления ГЛАВНОГО ОТЧЕТА.
 // Почему: Самый высокий IQ. Способна связать разрозненные факты в сложный психологический портрет.
-const MODEL_REASONING = "google/gemini-3-pro-preview"; 
+const MODEL_REASONING = "google/gemini-3-pro-preview";
 
 // 3. CHAT MODEL: Gemini 2.0 Pro (Experimental)
 // Используется для ЧАТА.
@@ -29,36 +29,36 @@ const MODEL_CHAT = "google/gemini-3-pro-preview";
 // --- UTILS ---
 
 const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд жесткий лимит на картинку
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд жесткий лимит на картинку
 
-  try {
-    // Используем wsrv.nl как надежный прокси для обхода 403 ошибок и ресайза
-    const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800&q=80`; 
-    const response = await fetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) return null;
-    
-    const blob = await response.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const res = reader.result as string;
-        if (res && res.startsWith('data:image')) {
-            resolve(res);
-        } else {
-            resolve(null);
-        }
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch (e) {
-    clearTimeout(timeoutId);
-    console.warn(`Failed to fetch image for analysis (${url}), skipping.`, e);
-    return null;
-  }
+    try {
+        // Используем wsrv.nl как надежный прокси для обхода 403 ошибок и ресайза
+        const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg&w=800&q=80`;
+        const response = await fetch(proxyUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) return null;
+
+        const blob = await response.blob();
+        return await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const res = reader.result as string;
+                if (res && res.startsWith('data:image')) {
+                    resolve(res);
+                } else {
+                    resolve(null);
+                }
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        clearTimeout(timeoutId);
+        console.warn(`Failed to fetch image for analysis (${url}), skipping.`, e);
+        return null;
+    }
 };
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -71,7 +71,7 @@ interface OpenRouterMessage {
 }
 
 async function openRouterCompletion(
-    messages: OpenRouterMessage[], 
+    messages: OpenRouterMessage[],
     model: string,
     temperature: number = 0.7
 ): Promise<string> {
@@ -85,7 +85,7 @@ async function openRouterCompletion(
     for (let i = 0; i < maxRetries; i++) {
         const controller = new AbortController();
         // Тайм-ауты: 25 сек для картинок (они легкие), 90+ сек для большого отчета и умного чата
-        const timeoutDuration = model === MODEL_VISION ? 25000 : 120000; 
+        const timeoutDuration = model === MODEL_VISION ? 25000 : 120000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
         try {
@@ -117,17 +117,17 @@ async function openRouterCompletion(
 
         } catch (err: any) {
             clearTimeout(timeoutId);
-            console.warn(`Attempt ${i+1} failed: ${err.message}`);
+            console.warn(`Attempt ${i + 1} failed: ${err.message}`);
             lastError = err;
-            
+
             // Если это AbortError (тайм-аут), то это критично для UX, но мы попробуем еще раз
             if (err.name === 'AbortError') {
                 console.warn("Request timed out - retrying...");
             }
-            
+
             // Экспоненциальная задержка перед повтором
             if (i < maxRetries - 1) {
-                 await delay(1000 * (i + 1)); 
+                await delay(1000 * (i + 1));
             }
         }
     }
@@ -140,51 +140,51 @@ async function openRouterCompletion(
 export type ProgressCallback = (current: number, total: number, stage: 'images' | 'final' | 'processing') => void;
 
 export const analyzeProfileWithGemini = async (
-  profileData: InstagramProfile,
-  onProgress?: ProgressCallback,
-  language: 'ru' | 'en' = 'ru',
-  analysisType: 'standard' | 'debt' | 'hr' | 'influencer' = 'standard',
-  targetPosition?: string
+    profileData: InstagramProfile,
+    onProgress?: ProgressCallback,
+    language: 'ru' | 'en' = 'ru',
+    analysisType: 'standard' | 'debt' | 'hr' | 'influencer' = 'standard',
+    targetPosition?: string
 ): Promise<StrategicReport> => {
 
-  // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
-  // We analyze images in batches to reduce HTTP requests and speed up processing.
-  // 100 posts -> ~20 requests instead of 100.
-  const postsToAnalyze = profileData.posts.slice(0, 30); // Increased limit to 30
-  const BATCH_SIZE = 5; // Send 5 images per single LLM request (Optimal for Gemini)
-  
-  const imageAnalysisResults: string[] = [];
-  let processedCount = 0;
+    // 1. VISUAL INTELLIGENCE STAGE (BATCHED)
+    // We analyze images in batches to reduce HTTP requests and speed up processing.
+    // 100 posts -> ~20 requests instead of 100.
+    const postsToAnalyze = profileData.posts.slice(0, 30); // Increased limit to 30
+    const BATCH_SIZE = 5; // Send 5 images per single LLM request (Optimal for Gemini)
 
-  if (onProgress) onProgress(0, postsToAnalyze.length, 'images');
+    const imageAnalysisResults: string[] = [];
+    let processedCount = 0;
 
-  // Start Image Analysis in Background
-  const imageAnalysisPromise = (async () => {
-      for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
-          const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
-          
-          // 1. Parallel Fetch of Base64 (Network Bound)
-          const base64Promises = batch.map(async (post) => {
-              if (!post.displayUrl) return null;
-              const b64 = await fetchImageAsBase64(post.displayUrl);
-              return b64 ? { id: post.id, data: b64 } : null;
-          });
-          
-          const images = (await Promise.all(base64Promises)).filter(img => img !== null) as {id: string, data: string}[];
+    if (onProgress) onProgress(0, postsToAnalyze.length, 'images');
 
-          if (images.length > 0) {
-              // 2. Single LLM Request for the whole batch (AI Bound)
-              await analyzeImageBatch(images, imageAnalysisResults);
-          }
-          
-          processedCount += batch.length;
-          if (onProgress) onProgress(Math.min(processedCount, postsToAnalyze.length), postsToAnalyze.length, 'images');
-      }
-  })();
+    // Start Image Analysis in Background
+    const imageAnalysisPromise = (async () => {
+        for (let i = 0; i < postsToAnalyze.length; i += BATCH_SIZE) {
+            const batch = postsToAnalyze.slice(i, i + BATCH_SIZE);
 
-  // 2. Prepare Text Context (Metadata) - Run immediately
-  const metadataContext = profileData.posts.map(p => {
-      return `
+            // 1. Parallel Fetch of Base64 (Network Bound)
+            const base64Promises = batch.map(async (post) => {
+                if (!post.displayUrl) return null;
+                const b64 = await fetchImageAsBase64(post.displayUrl);
+                return b64 ? { id: post.id, data: b64 } : null;
+            });
+
+            const images = (await Promise.all(base64Promises)).filter(img => img !== null) as { id: string, data: string }[];
+
+            if (images.length > 0) {
+                // 2. Single LLM Request for the whole batch (AI Bound)
+                await analyzeImageBatch(images, imageAnalysisResults);
+            }
+
+            processedCount += batch.length;
+            if (onProgress) onProgress(Math.min(processedCount, postsToAnalyze.length), postsToAnalyze.length, 'images');
+        }
+    })();
+
+    // 2. Prepare Text Context (Metadata) - Run immediately
+    const metadataContext = profileData.posts.map(p => {
+        return `
       POST ID: ${p.id}
       - Date: ${p.timestamp}
       - Type: ${p.type} (${p.productType})
@@ -195,13 +195,13 @@ export const analyzeProfileWithGemini = async (
       - Comments: ${p.commentsCount}
       - Caption: ${p.caption.substring(0, 200)}...
       `;
-  }).join("\n");
+    }).join("\n");
 
-  const relatedContext = profileData.relatedProfiles && profileData.relatedProfiles.length > 0 
-      ? `RELATED ACCOUNTS (Potential Circle): ${profileData.relatedProfiles.map(p => p.username).join(", ")}` 
-      : "";
+    const relatedContext = profileData.relatedProfiles && profileData.relatedProfiles.length > 0
+        ? `RELATED ACCOUNTS (Potential Circle): ${profileData.relatedProfiles.map(p => p.username).join(", ")}`
+        : "";
 
-  const textContext = `
+    const textContext = `
     PROFILE METADATA:
     Username: ${profileData.username}
     Full Name: ${profileData.fullName}
@@ -214,86 +214,113 @@ export const analyzeProfileWithGemini = async (
     ${metadataContext}
   `;
 
-  // Wait for Image Analysis to finish before Final Report
-  // We can't run the Final Report purely in parallel because it DEPENDS on the image insights.
-  // However, we optimized by preparing text context while images were processing.
-  
-  await imageAnalysisPromise;
+    // Wait for Image Analysis to finish before Final Report
+    // We can't run the Final Report purely in parallel because it DEPENDS on the image insights.
+    // However, we optimized by preparing text context while images were processing.
 
-  // 3. FINAL STRATEGIC ANALYSIS STAGE
-  if (onProgress) onProgress(0, 100, 'final');
+    await imageAnalysisPromise;
 
-  const combinedContext = `
+    // 3. FINAL STRATEGIC ANALYSIS STAGE
+    if (onProgress) onProgress(0, 100, 'final');
+
+    const combinedContext = `
     ${textContext}
 
     VISUAL INTELLIGENCE REPORT (Deep Image Analysis):
     ${imageAnalysisResults.length > 0 ? imageAnalysisResults.join("\n\n") : "Visual analysis unavailable."}
   `;
-  
-  const langInstruction = language === 'en' 
-    ? "\n\nIMPORTANT: OUTPUT THE FINAL REPORT STRICTLY IN ENGLISH. TRANSLATE ALL SECTIONS, TITLES, AND INSIGHTS TO ENGLISH." 
-    : "";
 
-  let selectedPrompt = PROFILE_ANALYSIS_PROMPT;
-  
-  if (analysisType === 'debt') {
-      selectedPrompt = DEBT_COLLECTOR_PROMPT;
-  } else if (analysisType === 'hr') {
-      selectedPrompt = HR_RECRUITMENT_PROMPT.replace('{{TARGET_POSITION}}', targetPosition || "General Position");
-  } else if (analysisType === 'influencer') {
-      selectedPrompt = INFLUENCER_AUDIT_PROMPT;
-  }
+    const langInstruction = language === 'en'
+        ? "\n\nIMPORTANT: OUTPUT THE FINAL REPORT STRICTLY IN ENGLISH. TRANSLATE ALL SECTIONS, TITLES, AND INSIGHTS TO ENGLISH."
+        : "";
 
-  try {
-    // Uses MODEL_REASONING for the big report
-    const reportText = await openRouterCompletion([
-        { role: "system", content: selectedPrompt + langInstruction },
-        { role: "user", content: combinedContext }
-    ], MODEL_REASONING, 0.5); 
+    let selectedPrompt = PROFILE_ANALYSIS_PROMPT;
 
-    // --- PARSING ---
-    const sections: { title: string; content: string }[] = [];
-    const regex = /(?:^|\n)(\d+[\.\)]\s+[^:\n]+[:]?)([\s\S]*?)(?=\n\d+[\.\)]\s+|$)/g;
-    let match;
-    while ((match = regex.exec(reportText)) !== null) {
-        sections.push({
-            title: match[1].trim(),
-            content: match[2].trim()
-        });
+    if (analysisType === 'debt') {
+        selectedPrompt = DEBT_COLLECTOR_PROMPT;
+    } else if (analysisType === 'hr') {
+        selectedPrompt = HR_RECRUITMENT_PROMPT.replace('{{TARGET_POSITION}}', targetPosition || "General Position");
+    } else if (analysisType === 'influencer') {
+        selectedPrompt = INFLUENCER_AUDIT_PROMPT;
     }
 
-    if (sections.length === 0) {
-        sections.push({ title: "Strategic Analysis", content: reportText });
+    try {
+        // Uses MODEL_REASONING for the big report
+        const reportText = await openRouterCompletion([
+            { role: "system", content: selectedPrompt + langInstruction },
+            { role: "user", content: combinedContext }
+        ], MODEL_REASONING, 0.5);
+
+        // --- PARSING ---
+        // --- PARSING ---
+        const sections: { title: string; content: string }[] = [];
+
+        // 1. Try parsing with strict [[SECTION]] marker
+        const strictRegex = /(?:^|\n)\[\[SECTION\]\]\s*(\d+[\.\)]\s+[^:\n]+[:]?)([\s\S]*?)(?=\n\[\[SECTION\]\]|$)/g;
+
+        // Check for Intro before the first section
+        const firstMatch = strictRegex.exec(reportText);
+        if (firstMatch && firstMatch.index > 0) {
+            const introText = reportText.substring(0, firstMatch.index).trim();
+            if (introText) {
+                sections.push({ title: "Введение / Intro", content: introText });
+            }
+        }
+
+        // Reset regex state
+        strictRegex.lastIndex = 0;
+
+        let match;
+        while ((match = strictRegex.exec(reportText)) !== null) {
+            sections.push({
+                title: match[1].trim(),
+                content: match[2].trim()
+            });
+        }
+
+        // 2. Fallback: If no strict sections found, try loose parsing (old method)
+        if (sections.length === 0) {
+            const looseRegex = /(?:^|\n)(\d+[\.\)]\s+[^:\n]+[:]?)([\s\S]*?)(?=\n\d+[\.\)]\s+|$)/g;
+            while ((match = looseRegex.exec(reportText)) !== null) {
+                sections.push({
+                    title: match[1].trim(),
+                    content: match[2].trim()
+                });
+            }
+        }
+
+        if (sections.length === 0) {
+            sections.push({ title: "Strategic Analysis", content: reportText });
+        }
+
+        return {
+            rawText: reportText,
+            sections,
+            visionAnalysis: imageAnalysisResults
+        };
+
+    } catch (error: any) {
+        console.error("Critical Strategy Generation Error:", error);
+        return {
+            rawText: `Error: ${error.message}`,
+            sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter. Please check logs." }],
+            visionAnalysis: imageAnalysisResults
+        };
     }
-
-    return {
-        rawText: reportText,
-        sections,
-        visionAnalysis: imageAnalysisResults 
-    };
-
-  } catch (error: any) {
-    console.error("Critical Strategy Generation Error:", error);
-    return {
-        rawText: `Error: ${error.message}`,
-        sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter. Please check logs." }],
-        visionAnalysis: imageAnalysisResults
-    };
-  }
 };
 
-async function analyzeImageBatch(images: {id: string, data: string}[], resultsArray: string[]) {
+async function analyzeImageBatch(images: { id: string, data: string }[], resultsArray: string[]) {
     if (images.length === 0) return;
 
     try {
         const userContent: any[] = [
-             { type: "text", text: `Analyze these ${images.length} images sequentially. For each image, briefly describe the key visual elements, hidden details, and the vibe. Be concise.` }
+            { type: "text", text: `Analyze these ${images.length} images sequentially. For each image, briefly describe the key visual elements, hidden details, and the vibe. Be concise.` }
         ];
 
         // Add images to the payload
         images.forEach(img => {
-             userContent.push({ type: "text", text: `[Image ID: ${img.id}]` });
-             userContent.push({ type: "image_url", image_url: { url: img.data } });
+            userContent.push({ type: "text", text: `[Image ID: ${img.id}]` });
+            userContent.push({ type: "image_url", image_url: { url: img.data } });
         });
 
         // Uses MODEL_VISION for speed and multimodal capability
@@ -321,15 +348,15 @@ export const createChatSession = (
     report: StrategicReport
 ): ChatSession => {
     const history: OpenRouterMessage[] = [
-        { 
-            role: "system", 
+        {
+            role: "system",
             content: `You are ZRETI AI, a strategic assistant. 
             Context: Analysis of Instagram profile @${profile.username}.
             
             REPORT SUMMARY:
             ${report.rawText.substring(0, 5000)} 
             
-            Keep answers concise, professional, and practical.` 
+            Keep answers concise, professional, and practical.`
         }
     ];
 
@@ -340,7 +367,7 @@ export const createChatSession = (
             history.push({ role: "user", content: userMessage });
 
             const controller = new AbortController();
-            
+
             // Chat responses using Pro model might take longer than Flash, but we want quality.
             const timeoutId = setTimeout(() => controller.abort(), 45000);
 
@@ -355,13 +382,13 @@ export const createChatSession = (
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: MODEL_CHAT, 
+                        model: MODEL_CHAT,
                         messages: history,
                         stream: true
                     }),
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
 
                 if (!response.body) throw new Error("No response body");
@@ -378,12 +405,12 @@ export const createChatSession = (
 
                         buffer += decoder.decode(value, { stream: true });
                         const lines = buffer.split("\n");
-                        buffer = lines.pop() || ""; 
+                        buffer = lines.pop() || "";
 
                         for (const line of lines) {
                             if (line.trim() === "") continue;
                             if (line.trim() === "data: [DONE]") continue;
-                            
+
                             if (line.startsWith("data: ")) {
                                 try {
                                     const json = JSON.parse(line.substring(6));
