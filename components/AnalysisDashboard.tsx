@@ -72,19 +72,10 @@ const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   const { t } = useLanguage();
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Keep tooltip active if hovered
-  const show = active || isHovered;
-
-  if (show && payload && payload.length) {
+  if (active && payload && payload.length) {
     const postData = payload && payload.length > 0 ? payload[0].payload : null;
     return (
-      <div 
-        className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md pointer-events-auto transition-opacity duration-200"
-        onMouseEnter={() => setIsHovered(true)} 
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md pointer-events-auto">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
         {postData?.url && (
             <a 
@@ -744,9 +735,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                 <Tooltip 
                   content={<CustomTooltip />} 
                   cursor={{ fill: 'rgba(34,211,238,0.05)' }} 
-                  trigger="hover"
-                  wrapperStyle={{ outline: 'none', zIndex: 1000, pointerEvents: 'auto' }}
-                  isAnimationActive={false}
+                  trigger="click"
+                  wrapperStyle={{ outline: 'none', zIndex: 1000 }}
                 />
 
                 <Bar yAxisId="likes" dataKey="likes" name={t('chart_likes')} fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} style={{ cursor: 'pointer' }} />
