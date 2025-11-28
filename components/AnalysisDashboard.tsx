@@ -258,12 +258,45 @@ const PrintStyles = () => (
         margin-bottom: 20px !important;
       }
 
-      /* Text Colors */
+      /* Text Colors - ensure all text is readable */
       .text-slate-200, .text-slate-300, .text-slate-400, .text-white {
         color: #374151 !important; /* gray-700 */
       }
-      .text-cyber-accent {
+      .text-slate-500, .text-slate-600 {
+        color: #1f2937 !important; /* gray-800 - darker for readability */
+      }
+      .text-cyber-accent, .text-purple-300 {
         color: #0e7490 !important; /* cyan-700 - darker for print */
+      }
+      
+      /* Make all dark backgrounds white in print */
+      [class*="bg-slate-900"], [class*="bg-cyber-800"], [class*="bg-cyber-900"] {
+        background: white !important;
+      }
+      
+      /* Make borders more visible */
+      [class*="border-white"], [class*="border-slate-700"], [class*="border-cyber-700"] {
+        border-color: #d1d5db !important; /* gray-300 */
+        border-width: 1px !important;
+      }
+      
+      /* Remove links for print - make them look like text */
+      a[href] {
+        text-decoration: none !important;
+        color: #111827 !important; /* gray-900 */
+        pointer-events: none !important;
+        cursor: default !important;
+      }
+      
+      /* Make text in dark containers readable (Digital Circle) */
+      [class*="bg-slate-900"] [class*="text-slate-"],
+      [class*="bg-cyber-800"] [class*="text-slate-"] {
+        color: #111827 !important; /* gray-900 - dark and readable */
+      }
+      
+      /* Ensure username text is readable */
+      [class*="text-slate-200"], [class*="text-slate-300"] {
+        color: #111827 !important;
       }
       
       /* Typography */
@@ -678,7 +711,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           </div>
 
           {/* Sidebar: Chat Widget (Sticky) - Desktop */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1 no-print">
               <div className="sticky top-24 space-y-6">
                   <ChatWidget profile={profile} report={analysis} />
               </div>
@@ -686,7 +719,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       </div>
       
       {/* Mobile Chat Widget (Full Width at bottom) */}
-      <div className="lg:hidden mt-8">
+      <div className="lg:hidden mt-8 no-print">
           <ChatWidget profile={profile} report={analysis} />
       </div>
 

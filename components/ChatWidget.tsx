@@ -160,7 +160,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ profile, report }) => {
   };
 
   return (
-    <div className="bg-cyber-900/30 border border-cyber-800 rounded-xl overflow-hidden flex flex-col h-[600px] break-inside-avoid relative">
+    <div className="bg-cyber-900/30 border border-cyber-800 rounded-xl overflow-hidden flex flex-col h-[600px] break-inside-avoid relative no-print">
         {/* Header */}
         <div className="p-4 border-b border-white/10 bg-cyber-900/50 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-cyber-900 border border-cyber-accent/50 flex items-center justify-center text-cyber-accent shadow-[0_0_15px_rgba(34,211,238,0.2)]">
