@@ -186,6 +186,7 @@ export const analyzeProfileWithGemini = async (
     const metadataContext = profileData.posts.map(p => {
         return `
       POST ID: ${p.id}
+      - URL: ${p.url || `https://www.instagram.com/p/${p.id}/`}
       - Date: ${p.timestamp}
       - Type: ${p.type} (${p.productType})
       - Pinned: ${p.isPinned ? "YES (High Importance)" : "No"}
