@@ -495,12 +495,18 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
     ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2)
     : "0";
 
-  const chartData = [...posts].reverse().map((post) => ({
-    date: new Date(post.timestamp).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
-    likes: post.likesCount,
-    comments: post.commentsCount,
-    er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
-  }));
+  const chartData = [...posts].reverse().map((post) => {
+    const date = new Date(post.timestamp);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return {
+      date: `${day}.${month}.${year}`,
+      likes: post.likesCount,
+      comments: post.commentsCount,
+      er: profile.followersCount > 0 ? ((post.likesCount + post.commentsCount) / profile.followersCount * 100).toFixed(2) : 0
+    };
+  });
 
   // --- EXTRACTION OF RICH DATA ---
   const uniqueLocations = Array.from(new Set(posts.map(p => p.location?.name).filter(Boolean))) as string[];
