@@ -728,14 +728,15 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
                   domain={[0, 'auto']}
                   tick={{ fill: '#a855f7' }}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34,211,238,0.05)' }} />
+                <Tooltip 
+                  content={<CustomTooltip />} 
+                  cursor={{ fill: 'rgba(34,211,238,0.05)' }} 
+                  trigger="click"
+                  wrapperStyle={{ outline: 'none', zIndex: 1000 }}
+                />
 
-                <Bar yAxisId="likes" dataKey="likes" name={t('chart_likes')} fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(data) => {
-                    if (data.url) window.open(data.url, '_blank');
-                }} style={{ cursor: 'pointer' }} />
-                <Bar yAxisId="comments" dataKey="comments" name={t('chart_comments')} fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(data) => {
-                    if (data.url) window.open(data.url, '_blank');
-                }} style={{ cursor: 'pointer' }} />
+                <Bar yAxisId="likes" dataKey="likes" name={t('chart_likes')} fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} style={{ cursor: 'pointer' }} />
+                <Bar yAxisId="comments" dataKey="comments" name={t('chart_comments')} fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
