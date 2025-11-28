@@ -22,7 +22,8 @@ import {
   MapPin,
   Music,
   Users,
-  Pin
+  Pin,
+  ExternalLink
 } from 'lucide-react';
 import {
   BarChart,
@@ -70,6 +71,7 @@ const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
 );
 
 const CustomTooltip = ({ active, payload, label }: any) => {
+  const { t } = useLanguage();
   if (active && payload && payload.length) {
     const postData = payload && payload.length > 0 ? payload[0].payload : null;
     return (
@@ -80,9 +82,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               href={postData.url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="block text-[10px] text-cyber-accent mb-2 truncate max-w-[200px] border-b border-cyber-accent/20 pb-1 hover:text-white hover:border-white/50 transition-colors"
+              className="flex items-center gap-2 text-[10px] text-cyber-accent mb-2 pb-2 border-b border-cyber-accent/20 hover:text-white transition-colors group"
             >
-                {postData.url.replace('https://www.instagram.com/p/', 'Post: ').replace(/\/$/, '')}
+                <span className="truncate">{t('chart_open_post')}</span>
+                <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
             </a>
         )}
         {payload.map((entry: any, index: number) => (
