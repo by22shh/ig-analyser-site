@@ -314,7 +314,7 @@ async function analyzeImageBatch(images: { id: string, data: string }[], results
 
     try {
         const userContent: any[] = [
-            { type: "text", text: `Analyze these ${images.length} images sequentially. For each image, briefly describe the key visual elements, hidden details, and the vibe. Be concise.` }
+            { type: "text", text: `Analyze these ${images.length} images sequentially. IMPORTANT: For each image, START your response with the [Image ID: ...] tag provided before the image. Briefly describe key visual elements, hidden details, and vibe. Be concise.` }
         ];
 
         // Add images to the payload
