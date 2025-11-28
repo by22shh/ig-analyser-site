@@ -75,14 +75,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const postData = payload && payload.length > 0 ? payload[0].payload : null;
     return (
-      <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md">
+      <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md pointer-events-auto">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
         {postData?.url && (
             <a 
               href={postData.url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[10px] text-cyber-accent mb-2 pb-2 border-b border-cyber-accent/20 hover:text-white transition-colors group"
+              className="flex items-center gap-2 text-[10px] text-cyber-accent mb-2 pb-2 border-b border-cyber-accent/20 hover:text-white transition-colors group cursor-pointer z-50 relative"
+              onClick={(e) => e.stopPropagation()}
             >
                 <span className="truncate">{t('chart_open_post')}</span>
                 <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
