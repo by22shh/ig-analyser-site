@@ -5,8 +5,8 @@ import { ChatWidget } from './ChatWidget';
 import { ProfileAvatar } from './ProfileAvatar';
 import { DigitalCircle } from './DigitalCircle';
 import { useLanguage } from '../contexts/LanguageContext';
-import { 
-  Download,  
+import {
+  Download,
   Eye,
   Copy,
   Check,
@@ -24,13 +24,13 @@ import {
   Users,
   Pin
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line
@@ -49,21 +49,21 @@ const StatCard = ({ label, value, subValue, icon: Icon, tooltip }: any) => (
     <div className="absolute right-2 top-2 text-cyber-700 group-hover:text-cyber-accent/20 transition-colors print:hidden pointer-events-none">
       <Icon className="w-8 h-8 opacity-20" />
     </div>
-    
+
     {/* Label with Tooltip (Hover over label to see) */}
     <div className="relative group/tooltip inline-block z-20">
-        <div className={`text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest mb-1 print:text-slate-600 ${tooltip ? 'cursor-help border-b border-cyber-accent/20 border-dashed' : ''}`}>
-            {label}
+      <div className={`text-cyber-accent/60 text-[10px] font-mono uppercase tracking-widest mb-1 print:text-slate-600 ${tooltip ? 'cursor-help border-b border-cyber-accent/20 border-dashed' : ''}`}>
+        {label}
+      </div>
+      {tooltip && (
+        <div className="absolute bottom-full left-0 mb-2 w-48 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+          {tooltip}
+          {/* Arrow */}
+          <div className="absolute top-full left-4 -mt-px border-4 border-transparent border-t-cyber-700"></div>
         </div>
-        {tooltip && (
-            <div className="absolute bottom-full left-0 mb-2 w-48 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                {tooltip}
-                {/* Arrow */}
-                <div className="absolute top-full left-4 -mt-px border-4 border-transparent border-t-cyber-700"></div>
-            </div>
-        )}
+      )}
     </div>
-    
+
     <div className="text-2xl font-display font-bold text-white tracking-wide print:text-black relative z-10">{value}</div>
     {subValue && <div className="text-xs text-slate-400 font-mono mt-1 print:text-slate-600 relative z-10">{subValue}</div>}
   </div>
@@ -90,102 +90,102 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // --- MARKDOWN RENDERER ---
 
 const renderMarkdown = (text: string) => {
-    const lines = text.split('\n');
-    const renderedElements: React.ReactNode[] = [];
-    let currentList: React.ReactNode[] = [];
+  const lines = text.split('\n');
+  const renderedElements: React.ReactNode[] = [];
+  let currentList: React.ReactNode[] = [];
 
-    const processInlineStyles = (str: string) => {
-        // Pass 1: Bold (**...**)
-        const parts = str.split(/(\*\*.*?\*\*)/g);
-        return parts.map((part, i) => {
-            if (part.startsWith('**') && part.length >= 4 && part.endsWith('**')) {
-                return <strong key={`bold-${i}`} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
-            }
-            
-            // Pass 2: Italic (*...*)
-            const subParts = part.split(/(\*.*?\*)/g);
-            return subParts.map((subPart, j) => {
-                if (subPart.startsWith('*') && subPart.length >= 2 && subPart.endsWith('*')) {
-                    if (subPart === '**') return subPart; // Ignore empty bold treated as italic
-                    return <em key={`italic-${i}-${j}`} className="italic text-slate-300 print:text-slate-700">{subPart.slice(1, -1)}</em>;
-                }
-                return subPart;
-            });
-        });
-    };
+  const processInlineStyles = (str: string) => {
+    // Pass 1: Bold (**...**)
+    const parts = str.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.length >= 4 && part.endsWith('**')) {
+        return <strong key={`bold-${i}`} className="font-bold text-white print:text-black">{part.slice(2, -2)}</strong>;
+      }
 
-    lines.forEach((line, index) => {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || (trimmed.startsWith('* ') && !trimmed.endsWith('*'))) {
-            const content = trimmed.replace(/^[-•*]\s+/, '');
-            currentList.push(
-                <li key={`li-${index}`} className="ml-5 pl-1 text-slate-300 list-disc marker:text-cyber-accent/70 print:text-slate-800 print:marker:text-black">
-                    {processInlineStyles(content)}
-                </li>
-            );
-        } 
-        else if (trimmed.startsWith('###')) {
-            if (currentList.length > 0) {
-                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
-                currentList = [];
-            }
-            renderedElements.push(
-                <h4 key={`h4-${index}`} className="font-display font-bold text-cyber-accent mt-4 mb-2 text-md print:text-black uppercase">
-                    {trimmed.replace(/###\s*/, '')}
-                </h4>
-            );
+      // Pass 2: Italic (*...*)
+      const subParts = part.split(/(\*.*?\*)/g);
+      return subParts.map((subPart, j) => {
+        if (subPart.startsWith('*') && subPart.length >= 2 && subPart.endsWith('*')) {
+          if (subPart === '**') return subPart; // Ignore empty bold treated as italic
+          return <em key={`italic-${i}-${j}`} className="italic text-slate-300 print:text-slate-700">{subPart.slice(1, -1)}</em>;
         }
-        else if (/^\d+\./.test(trimmed)) {
-            if (currentList.length > 0) {
-                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
-                currentList = [];
-            }
-            
-            let content = trimmed;
-            // Fix unclosed bold
-            if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
-                content += "**";
-            }
-            
-            const firstSpace = content.indexOf(' ');
-            const number = firstSpace > -1 ? content.slice(0, firstSpace) : content;
-            const text = firstSpace > -1 ? content.slice(firstSpace + 1) : '';
-
-            renderedElements.push(
-                <div key={`nl-${index}`} className="mb-3 flex items-start gap-3 text-slate-300 print:text-slate-800">
-                     <span className="font-mono text-cyber-accent font-bold mt-1 text-xs shrink-0">{number}</span>
-                     <span className="leading-relaxed">{processInlineStyles(text)}</span>
-                </div>
-            );
-        }
-        else {
-            if (currentList.length > 0) {
-                renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
-                currentList = [];
-            }
-            
-            if (trimmed.length === 0) {
-                renderedElements.push(<div key={`br-${index}`} className="h-2" />);
-            } else {
-                let content = line;
-                if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
-                     content += "**";
-                }
-                renderedElements.push(
-                    <p key={`p-${index}`} className="mb-2 leading-relaxed text-slate-300 print:text-slate-800">
-                        {processInlineStyles(content)}
-                    </p>
-                );
-            }
-        }
+        return subPart;
+      });
     });
+  };
 
-    if (currentList.length > 0) {
-        renderedElements.push(<ul key={`ul-end`} className="mb-3 space-y-1">{currentList}</ul>);
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || (trimmed.startsWith('* ') && !trimmed.endsWith('*'))) {
+      const content = trimmed.replace(/^[-•*]\s+/, '');
+      currentList.push(
+        <li key={`li-${index}`} className="ml-5 pl-1 text-slate-300 list-disc marker:text-cyber-accent/70 print:text-slate-800 print:marker:text-black">
+          {processInlineStyles(content)}
+        </li>
+      );
     }
+    else if (trimmed.startsWith('###')) {
+      if (currentList.length > 0) {
+        renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+        currentList = [];
+      }
+      renderedElements.push(
+        <h4 key={`h4-${index}`} className="font-display font-bold text-cyber-accent mt-4 mb-2 text-md print:text-black uppercase">
+          {trimmed.replace(/###\s*/, '')}
+        </h4>
+      );
+    }
+    else if (/^\d+\./.test(trimmed)) {
+      if (currentList.length > 0) {
+        renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+        currentList = [];
+      }
 
-    return renderedElements;
+      let content = trimmed;
+      // Fix unclosed bold
+      if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
+        content += "**";
+      }
+
+      const firstSpace = content.indexOf(' ');
+      const number = firstSpace > -1 ? content.slice(0, firstSpace) : content;
+      const text = firstSpace > -1 ? content.slice(firstSpace + 1) : '';
+
+      renderedElements.push(
+        <div key={`nl-${index}`} className="mb-3 flex items-start gap-3 text-slate-300 print:text-slate-800">
+          <span className="font-mono text-cyber-accent font-bold mt-1 text-xs shrink-0">{number}</span>
+          <span className="leading-relaxed">{processInlineStyles(text)}</span>
+        </div>
+      );
+    }
+    else {
+      if (currentList.length > 0) {
+        renderedElements.push(<ul key={`ul-${index}`} className="mb-3 space-y-1">{currentList}</ul>);
+        currentList = [];
+      }
+
+      if (trimmed.length === 0) {
+        renderedElements.push(<div key={`br-${index}`} className="h-2" />);
+      } else {
+        let content = line;
+        if ((content.match(/\*\*/g) || []).length % 2 !== 0) {
+          content += "**";
+        }
+        renderedElements.push(
+          <p key={`p-${index}`} className="mb-2 leading-relaxed text-slate-300 print:text-slate-800">
+            {processInlineStyles(content)}
+          </p>
+        );
+      }
+    }
+  });
+
+  if (currentList.length > 0) {
+    renderedElements.push(<ul key={`ul-end`} className="mb-3 space-y-1">{currentList}</ul>);
+  }
+
+  return renderedElements;
 };
 
 // --- PRINT STYLES ---
@@ -300,6 +300,8 @@ const PrintStyles = () => (
         background: #f9fafb !important;
         border: 1px solid #d1d5db !important;
         display: flex !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
       }
       
       /* All text elements - force dark color */
@@ -308,6 +310,7 @@ const PrintStyles = () => (
       .digital-circle-component span,
       .digital-circle-component a {
         color: #111827 !important;
+        text-align: left !important;
       }
       
       /* Keep headings slightly different */
@@ -387,9 +390,9 @@ const PrintStyles = () => (
 );
 
 interface ReportOptions {
-    title: string;
-    logoUrl: string;
-    showLogo: boolean;
+  title: string;
+  logoUrl: string;
+  showLogo: boolean;
 }
 
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, analysis, onReset }) => {
@@ -397,14 +400,14 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [reportOptions, setReportOptions] = useState<ReportOptions>({
-      title: `CONFIDENTIAL DOSSIER: @${profile.username.toUpperCase()}`,
-      logoUrl: "",
-      showLogo: false
+    title: `CONFIDENTIAL DOSSIER: @${profile.username.toUpperCase()}`,
+    logoUrl: "",
+    showLogo: false
   });
 
   // Scroll to top on mount (instant, to look like a fresh page load)
   useEffect(() => {
-      window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
   }, []);
 
   const handlePrint = () => {
@@ -418,14 +421,14 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              setReportOptions(prev => ({ ...prev, logoUrl: reader.result as string, showLogo: true }));
-          };
-          reader.readAsDataURL(file);
-      }
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReportOptions(prev => ({ ...prev, logoUrl: reader.result as string, showLogo: true }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // --- DATA PROCESSING FOR VISUALS ---
@@ -434,9 +437,9 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const totalComments = posts.reduce((acc, p) => acc + p.commentsCount, 0);
   const avgLikes = posts.length ? Math.round(totalLikes / posts.length) : 0;
   const avgComments = posts.length ? Math.round(totalComments / posts.length) : 0;
-  
+
   const er = profile.followersCount > 0 && posts.length > 0
-    ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2) 
+    ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2)
     : "0";
 
   const chartData = [...posts].reverse().map((post) => ({
@@ -450,7 +453,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const uniqueLocations = Array.from(new Set(posts.map(p => p.location?.name).filter(Boolean))) as string[];
   const uniqueMusic = Array.from(new Set(posts.map(p => p.musicInfo ? `${p.musicInfo.artist} - ${p.musicInfo.song}` : null).filter(Boolean))) as string[];
   const pinnedPostsCount = posts.filter(p => p.isPinned).length;
-  
+
   const relatedProfiles = profile.relatedProfiles?.slice(0, 5) || [];
 
   let frequency = "Н/Д";
@@ -472,117 +475,117 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
 
       {/* --- PRINT ONLY HEADER --- */}
       <div className="hidden print-header flex-row justify-between items-center w-full">
-          <div className="flex items-center gap-4">
-              {reportOptions.showLogo && reportOptions.logoUrl ? (
-                  <img src={reportOptions.logoUrl} alt="Agency Logo" className="h-12 w-auto object-contain" />
-              ) : (
-                  <div className="text-2xl font-bold text-gray-900 tracking-wider">ZRETI<span className="text-cyan-600">.AI</span></div>
-              )}
-          </div>
-          <div className="text-right">
-              <h1 className="text-xl font-bold text-gray-900 uppercase">{reportOptions.title}</h1>
-              <div className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</div>
-          </div>
+        <div className="flex items-center gap-4">
+          {reportOptions.showLogo && reportOptions.logoUrl ? (
+            <img src={reportOptions.logoUrl} alt="Agency Logo" className="h-12 w-auto object-contain" />
+          ) : (
+            <div className="text-2xl font-bold text-gray-900 tracking-wider">ZRETI<span className="text-cyan-600">.AI</span></div>
+          )}
+        </div>
+        <div className="text-right">
+          <h1 className="text-xl font-bold text-gray-900 uppercase">{reportOptions.title}</h1>
+          <div className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString()}</div>
+        </div>
       </div>
 
       {/* --- SETTINGS MODAL (UI) --- */}
       {showSettings && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print">
-              <div className="bg-slate-900 border border-cyber-700 rounded-xl w-full max-w-md p-6 shadow-2xl relative">
-                  <button 
-                      onClick={() => setShowSettings(false)}
-                      className="absolute top-4 right-4 text-slate-400 hover:text-white"
-                  >
-                      <Check className="w-5 h-5" />
-                  </button>
-                  
-                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                      <Download className="w-5 h-5 text-cyber-accent" />
-                      Report Settings (White Label)
-                  </h3>
-                  
-                  <div className="space-y-4">
-                      <div>
-                          <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Report Title</label>
-                          <input 
-                              type="text" 
-                              value={reportOptions.title}
-                              onChange={(e) => setReportOptions(prev => ({ ...prev, title: e.target.value }))}
-                              className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyber-accent outline-none"
-                          />
-                      </div>
-                      
-                      <div>
-                          <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Agency Logo</label>
-                          <div className="flex items-center gap-4">
-                              {reportOptions.logoUrl && (
-                                  <img src={reportOptions.logoUrl} className="h-10 w-10 object-contain bg-white rounded p-1" />
-                              )}
-                              <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded border border-slate-700 text-xs flex items-center gap-2 transition-colors">
-                                  <span>Upload Image...</span>
-                                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                              </label>
-                          </div>
-                      </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print">
+          <div className="bg-slate-900 border border-cyber-700 rounded-xl w-full max-w-md p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowSettings(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+            >
+              <Check className="w-5 h-5" />
+            </button>
 
-                      <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                          <button 
-                              onClick={() => { setShowSettings(false); handlePrint(); }}
-                              className="bg-cyber-600 hover:bg-cyber-500 text-white font-bold py-2 px-4 rounded text-sm flex items-center gap-2"
-                          >
-                              <Download className="w-4 h-4" /> Save & Print PDF
-                          </button>
-                      </div>
-                  </div>
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Download className="w-5 h-5 text-cyber-accent" />
+              Report Settings (White Label)
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Report Title</label>
+                <input
+                  type="text"
+                  value={reportOptions.title}
+                  onChange={(e) => setReportOptions(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white focus:border-cyber-accent outline-none"
+                />
               </div>
+
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-2 uppercase">Agency Logo</label>
+                <div className="flex items-center gap-4">
+                  {reportOptions.logoUrl && (
+                    <img src={reportOptions.logoUrl} className="h-10 w-10 object-contain bg-white rounded p-1" />
+                  )}
+                  <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded border border-slate-700 text-xs flex items-center gap-2 transition-colors">
+                    <span>Upload Image...</span>
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                  </label>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+                <button
+                  onClick={() => { setShowSettings(false); handlePrint(); }}
+                  className="bg-cyber-600 hover:bg-cyber-500 text-white font-bold py-2 px-4 rounded text-sm flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> Save & Print PDF
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
       )}
-      
+
       {/* Top Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cyber-700 pb-6 print:hidden no-print">
         {/* ... existing top bar content ... */}
         <div className="flex items-center gap-4">
-            <ProfileAvatar 
-              src={profile.profilePicUrl} 
-              alt={profile.username} 
-              className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] object-cover"
-            />
-            <div>
-                <h1 className="text-xl md:text-2xl font-sans font-bold text-white tracking-normal">
-                    <span className="text-cyber-accent/80 mr-2 font-mono text-lg md:text-xl">{t('dossier_prefix')}</span>
-                    @{profile.username}
-                </h1>
-                <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-2">
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
-                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
-                    <span className="flex items-center gap-1 text-cyber-accent"><Check className="w-3 h-3" /> {posts.length} {t('analyzed_count')}</span>
-                </div>
+          <ProfileAvatar
+            src={profile.profilePicUrl}
+            alt={profile.username}
+            className="w-16 h-16 rounded-lg border border-cyber-500 shadow-[0_0_15px_rgba(34,211,238,0.2)] object-cover"
+          />
+          <div>
+            <h1 className="text-xl md:text-2xl font-sans font-bold text-white tracking-normal">
+              <span className="text-cyber-accent/80 mr-2 font-mono text-lg md:text-xl">{t('dossier_prefix')}</span>
+              @{profile.username}
+            </h1>
+            <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-400 mt-2">
+              <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {profile.followersCount.toLocaleString()} {t('followers')}</span>
+              <span className="flex items-center gap-1"><Users className="w-3 h-3 opacity-70" /> {profile.followsCount.toLocaleString()} {t('following')}</span>
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {profile.postsCount.toLocaleString()} {t('posts')}</span>
+              <span className="flex items-center gap-1 text-cyber-accent"><Check className="w-3 h-3" /> {posts.length} {t('analyzed_count')}</span>
             </div>
+          </div>
         </div>
 
         <div className="flex gap-2 no-print">
-            <button 
-                onClick={() => setShowSettings(true)}
-                className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
-            >
-               <Download className="w-4 h-4" />
-               <span className="text-xs font-bold hidden md:inline">{t('btn_pdf')}</span>
-            </button>
-             <button 
-                onClick={onReset}
-                className="p-2 bg-red-950/50 hover:bg-red-900/50 text-red-400 rounded border border-red-900/50 transition-colors flex items-center gap-2"
-            >
-               <RefreshCw className="w-4 h-4" />
-               <span className="text-xs font-bold hidden md:inline">{t('btn_new')}</span>
-            </button>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2 bg-cyber-800 hover:bg-cyber-700 text-cyber-accent rounded border border-cyber-700 transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span className="text-xs font-bold hidden md:inline">{t('btn_pdf')}</span>
+          </button>
+          <button
+            onClick={onReset}
+            className="p-2 bg-red-950/50 hover:bg-red-900/50 text-red-400 rounded border border-red-900/50 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="text-xs font-bold hidden md:inline">{t('btn_new')}</span>
+          </button>
         </div>
       </div>
 
       {/* PRINT ONLY FOOTER */}
       <div className="hidden print-footer">
-          <div>Report generated by ZRETI AI Analysis Engine</div>
-          <div>Page <span className="pageNumber"></span></div>
+        <div>Report generated by ZRETI AI Analysis Engine</div>
+        <div>Page <span className="pageNumber"></span></div>
       </div>
 
       {/* ... rest of the dashboard components ... */}
@@ -592,37 +595,37 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label={t('stat_likes')} value={avgLikes.toLocaleString()} subValue={t('stat_sub_likes', { count: posts.length })} icon={Heart} />
         <StatCard label={t('stat_comments')} value={avgComments.toLocaleString()} subValue={t('stat_sub_interaction')} icon={MessageCircle} />
-        <StatCard 
-            label={t('stat_er')} 
-            value={`${er}%`} 
-            subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')} 
-            icon={Activity} 
-            tooltip={t('er_tooltip')}
+        <StatCard
+          label={t('stat_er')}
+          value={`${er}%`}
+          subValue={parseFloat(er) > 3 ? t('er_high') : t('er_avg')}
+          icon={Activity}
+          tooltip={t('er_tooltip')}
         />
         <StatCard label={t('stat_freq')} value={frequency} subValue={t('stat_sub_consistency')} icon={Calendar} />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 print:break-inside-avoid">
-          <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
-               <div className="flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-4 h-4 text-cyber-accent" />
-                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stat_chart_title')}</h3>
-               </div>
-               <div className="h-[200px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} barGap={2}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis hide domain={[0, 'auto']} />
-                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34,211,238,0.05)'}} />
-                        
-                        <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    </BarChart>
-                  </ResponsiveContainer>
-               </div>
+        <div className="bg-cyber-800/20 border border-cyber-700/50 rounded-xl p-4 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-4 h-4 text-cyber-accent" />
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('stat_chart_title')}</h3>
           </div>
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} barGap={2}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis hide domain={[0, 'auto']} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34,211,238,0.05)' }} />
+
+                <Bar dataKey="likes" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="comments" fill="#a855f7" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Digital Circle (Connections) */}
@@ -630,137 +633,137 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
 
       {/* Digital Footprint Section (New) */}
       {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
-          <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
-             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-green-500" /> {t('footprint_title')}
-             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                {uniqueLocations.length > 0 && (
-                    <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <MapPin className="w-3 h-3" /> {t('fp_locations')}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {uniqueLocations.slice(0, 5).map((loc, i) => (
-                                <span key={i} className="bg-cyber-800/50 border border-cyber-700/50 text-slate-300 text-[10px] px-2 py-1 rounded">
-                                    {loc}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                )}
+        <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-green-500" /> {t('footprint_title')}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                {uniqueMusic.length > 0 && (
-                    <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Music className="w-3 h-3" /> {t('fp_music')}
-                        </div>
-                        <ul className="space-y-1">
-                            {uniqueMusic.slice(0, 3).map((track, i) => (
-                                <li key={i} className="text-[10px] text-slate-300 truncate max-w-[200px]">
-                                    ♪ {track}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
+            {uniqueLocations.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                  <MapPin className="w-3 h-3" /> {t('fp_locations')}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueLocations.slice(0, 5).map((loc, i) => (
+                    <span key={i} className="bg-cyber-800/50 border border-cyber-700/50 text-slate-300 text-[10px] px-2 py-1 rounded">
+                      {loc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                {relatedProfiles.length > 0 && (
-                    <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Users className="w-3 h-3" /> {t('fp_circle')}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                             {relatedProfiles.map((rp, i) => (
-                                <span key={i} className="text-[10px] text-slate-300 bg-cyber-800/30 px-2 py-0.5 rounded border border-white/5">
-                                    @{rp.username}
-                                </span>
-                             ))}
-                        </div>
-                    </div>
-                )}
+            {uniqueMusic.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                  <Music className="w-3 h-3" /> {t('fp_music')}
+                </div>
+                <ul className="space-y-1">
+                  {uniqueMusic.slice(0, 3).map((track, i) => (
+                    <li key={i} className="text-[10px] text-slate-300 truncate max-w-[200px]">
+                      ♪ {track}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                {pinnedPostsCount > 0 && (
-                     <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
-                            <Pin className="w-3 h-3" /> {t('fp_strategy')}
-                        </div>
-                        <div className="text-sm text-white font-mono">
-                            {t('pinned_detected', { count: pinnedPostsCount })}
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-1">
-                            {t('high_priority')}
-                        </div>
-                    </div>
-                )}
-             </div>
+            {relatedProfiles.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                  <Users className="w-3 h-3" /> {t('fp_circle')}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {relatedProfiles.map((rp, i) => (
+                    <span key={i} className="text-[10px] text-slate-300 bg-cyber-800/30 px-2 py-0.5 rounded border border-white/5">
+                      @{rp.username}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {pinnedPostsCount > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-2 uppercase tracking-widest">
+                  <Pin className="w-3 h-3" /> {t('fp_strategy')}
+                </div>
+                <div className="text-sm text-white font-mono">
+                  {t('pinned_detected', { count: pinnedPostsCount })}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">
+                  {t('high_priority')}
+                </div>
+              </div>
+            )}
           </div>
+        </div>
       )}
 
       {/* Report Content & Chat */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-             {analysis.sections.map((section, idx) => {
-                 const isWarn = isWarningSection(section.title.toUpperCase());
-                 const isAct = isActionSection(section.title.toUpperCase());
-                 const isInsight = isInsightSection(section.title.toUpperCase());
+        <div className="lg:col-span-2 space-y-6">
+          {analysis.sections.map((section, idx) => {
+            const isWarn = isWarningSection(section.title.toUpperCase());
+            const isAct = isActionSection(section.title.toUpperCase());
+            const isInsight = isInsightSection(section.title.toUpperCase());
 
-                 return (
-                     <div 
-                        key={idx} 
-                        className={`
+            return (
+              <div
+                key={idx}
+                className={`
                             rounded-xl p-6 border backdrop-blur-md transition-all duration-300 break-inside-avoid
-                            ${isWarn 
-                                ? 'bg-red-950/10 border-red-500/30 hover:border-red-500/50' 
-                                : isAct 
-                                    ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent/50 shadow-[0_0_30px_rgba(34,211,238,0.05)]'
-                                    : isInsight
-                                        ? 'bg-purple-900/10 border-purple-500/30 hover:border-purple-500/50'
-                                        : 'bg-cyber-800/20 border-cyber-700/30 hover:border-cyber-600'}
+                            ${isWarn
+                    ? 'bg-red-950/10 border-red-500/30 hover:border-red-500/50'
+                    : isAct
+                      ? 'bg-cyber-900/40 border-cyber-accent/30 hover:border-cyber-accent/50 shadow-[0_0_30px_rgba(34,211,238,0.05)]'
+                      : isInsight
+                        ? 'bg-purple-900/10 border-purple-500/30 hover:border-purple-500/50'
+                        : 'bg-cyber-800/20 border-cyber-700/30 hover:border-cyber-600'}
                         `}
-                     >
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                {isWarn && <AlertTriangle className="w-5 h-5 text-red-500" />}
-                                {isAct && <Terminal className="w-5 h-5 text-cyber-accent" />}
-                                {isInsight && <Lightbulb className="w-5 h-5 text-purple-400" />}
-                                
-                                <h2 className={`
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    {isWarn && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                    {isAct && <Terminal className="w-5 h-5 text-cyber-accent" />}
+                    {isInsight && <Lightbulb className="w-5 h-5 text-purple-400" />}
+
+                    <h2 className={`
                                     font-display font-bold text-lg tracking-wide uppercase
                                     ${isWarn ? 'text-red-400' : isAct ? 'text-cyber-accent' : isInsight ? 'text-purple-300' : 'text-white'}
                                     print:text-black
                                 `}>
-                                    {section.title}
-                                </h2>
-                            </div>
-                            <button 
-                                onClick={() => copyToClipboard(section.content, `sec-${idx}`)}
-                                className="text-slate-600 hover:text-cyber-accent transition-colors print:hidden"
-                            >
-                                {copiedSection === `sec-${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                        </div>
+                      {section.title}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(section.content, `sec-${idx}`)}
+                    className="text-slate-600 hover:text-cyber-accent transition-colors print:hidden"
+                  >
+                    {copiedSection === `sec-${idx}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
 
-                        <div className="prose prose-invert prose-sm max-w-none font-sans text-slate-300 print:text-black">
-                            {renderMarkdown(section.content)}
-                        </div>
-                     </div>
-                 );
-             })}
-          </div>
-
-          {/* Sidebar: Chat Widget (Sticky) - Desktop */}
-          <div className="hidden lg:block lg:col-span-1 no-print">
-              <div className="sticky top-24 space-y-6">
-                  <ChatWidget profile={profile} report={analysis} />
+                <div className="prose prose-invert prose-sm max-w-none font-sans text-slate-300 print:text-black">
+                  {renderMarkdown(section.content)}
+                </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Sidebar: Chat Widget (Sticky) - Desktop */}
+        <div className="hidden lg:block lg:col-span-1 no-print">
+          <div className="sticky top-24 space-y-6">
+            <ChatWidget profile={profile} report={analysis} />
           </div>
+        </div>
       </div>
-      
+
       {/* Mobile Chat Widget (Full Width at bottom) */}
       <div className="lg:hidden mt-8 no-print">
-          <ChatWidget profile={profile} report={analysis} />
+        <ChatWidget profile={profile} report={analysis} />
       </div>
 
     </div>
