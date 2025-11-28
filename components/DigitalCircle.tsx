@@ -90,7 +90,11 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                     
                     {/* Tooltip with detailed information */}
                     {user.details && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)] print:hidden">
+                        <div className={`absolute left-1/2 -translate-x-1/2 w-64 p-3 bg-[#020617] border border-cyber-700 rounded-lg text-[10px] text-slate-300 opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)] print:hidden ${
+                            idx < 4 
+                                ? 'top-full mt-2' // For first row: show below
+                                : 'bottom-full mb-2' // For other rows: show above
+                        }`}>
                             <div className="font-bold text-cyber-accent mb-2 text-xs">@{user.username}</div>
                             <div className="space-y-1">
                                 {user.details.tags > 0 && (
@@ -122,8 +126,12 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                                     </div>
                                 )}
                             </div>
-                            {/* Arrow */}
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-cyber-700"></div>
+                            {/* Arrow - position depends on tooltip position */}
+                            {idx < 4 ? (
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-px border-4 border-transparent border-b-cyber-700"></div>
+                            ) : (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-cyber-700"></div>
+                            )}
                         </div>
                     )}
                 </div>
