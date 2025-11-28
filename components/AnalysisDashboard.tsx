@@ -332,6 +332,12 @@ const PrintStyles = () => (
         justify-content: flex-start !important;
         text-align: left !important;
         padding: 12px !important; /* Increased padding for cards */
+        overflow: visible !important; /* Ensure content is visible */
+      }
+      
+      /* Fix overflow for text containers in Digital Circle */
+      .digital-circle-component [class*="overflow-hidden"] {
+        overflow: visible !important;
       }
       
       /* All text elements - force dark color */
@@ -341,6 +347,23 @@ const PrintStyles = () => (
       .digital-circle-component a {
         color: #111827 !important;
         text-align: left !important;
+      }
+      
+      /* Ensure all divs in Digital Circle cards are visible */
+      .digital-circle-component a > div {
+        overflow: visible !important;
+        min-width: 0 !important;
+      }
+      
+      /* Username text - make sure it's visible */
+      .digital-circle-component a div[class*="flex-1"] {
+        overflow: visible !important;
+      }
+      
+      .digital-circle-component a div[class*="flex-1"] > div {
+        overflow: visible !important;
+        white-space: normal !important;
+        text-overflow: clip !important;
       }
       
       /* Keep headings slightly different */

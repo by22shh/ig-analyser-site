@@ -44,8 +44,8 @@ export const DigitalCircle: React.FC<DigitalCircleProps> = ({ profile }) => {
                             </div>
                         </div>
 
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                            <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent truncate print:!text-black print:!whitespace-normal print:!overflow-visible">
+                        <div className="flex-1 min-w-0 overflow-hidden print:!overflow-visible">
+                            <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent truncate print:!text-black print:!whitespace-normal print:!overflow-visible print:!truncate">
                                 @{user.username}
                             </div>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
