@@ -167,7 +167,8 @@ export const fetchInstagramData = async (
                 taggedUsers: item.taggedUsers ? item.taggedUsers.map((u:any) => u.username) : []
             };
         })
-        .slice(0, 30); // Take 30 to get a better range
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) // Sort by date descending (newest first)
+        .slice(0, 30); // Take 30 most recent posts for consistent results
 
     // Map Related Profiles
     const relatedProfiles = metaData.relatedProfiles?.map((rp: any) => ({

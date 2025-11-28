@@ -485,12 +485,19 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   };
 
   // --- DATA PROCESSING FOR VISUALS ---
+  // NOTE: Metrics are calculated from the most recent 30 posts (sorted by date in apifyService)
+  // Values may vary between analyses due to:
+  // 1. Real-time updates: Likes/comments change on Instagram in real-time
+  // 2. Follower count changes: followersCount may differ between requests
+  // 3. Post engagement updates: Even same posts may have different engagement counts
+  
   const posts = profile.posts || [];
   const totalLikes = posts.reduce((acc, p) => acc + p.likesCount, 0);
   const totalComments = posts.reduce((acc, p) => acc + p.commentsCount, 0);
   const avgLikes = posts.length ? Math.round(totalLikes / posts.length) : 0;
   const avgComments = posts.length ? Math.round(totalComments / posts.length) : 0;
 
+  // Engagement Rate = Average interactions per post / Total followers * 100
   const er = profile.followersCount > 0 && posts.length > 0
     ? (((totalLikes + totalComments) / posts.length) / profile.followersCount * 100).toFixed(2)
     : "0";
