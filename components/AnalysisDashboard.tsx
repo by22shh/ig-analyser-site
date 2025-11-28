@@ -259,20 +259,27 @@ const PrintStyles = () => (
         padding: 24px !important; /* Increased padding for all cards */
       }
       
-      /* Increase padding for all rounded-xl containers (sections) */
+      /* Keep border-radius for all rounded-xl */
       .rounded-xl {
-        padding: 28px !important; /* Increased from default p-6 (24px) */
         border-radius: 8px !important;
       }
       
+      /* Increase padding for main report sections - use attribute selector for reliability */
+      [class*="bg-cyber-800"][class*="rounded-xl"][class*="p-6"],
+      [class*="bg-cyber-900"][class*="rounded-xl"][class*="p-6"],
+      [class*="bg-red-950"][class*="rounded-xl"][class*="p-6"],
+      [class*="bg-purple-900"][class*="rounded-xl"][class*="p-6"] {
+        padding: 28px !important; /* Increased from 24px */
+      }
+      
       /* Stat cards - increase padding */
-      [class*="p-4"] {
+      [class*="bg-cyber-800"][class*="p-4"][class*="rounded-xl"] {
         padding: 20px !important; /* Increased from 16px */
       }
       
-      /* Sections with p-6 - ensure they have enough padding */
-      [class*="p-6"] {
-        padding: 28px !important; /* Increased from 24px */
+      /* Chart section */
+      [class*="bg-cyber-800"][class*="p-4"][class*="backdrop-blur"] {
+        padding: 20px !important;
       }
 
       /* Text Colors - ensure all text is readable */
@@ -303,7 +310,11 @@ const PrintStyles = () => (
         color: #111827 !important; /* gray-900 */
         pointer-events: none !important;
         cursor: default !important;
-        display: block !important; /* Ensure link content is visible */
+      }
+      
+      /* Keep flex layout for Digital Circle links */
+      .digital-circle-component a[href] {
+        display: flex !important; /* Preserve flex layout */
       }
       
       /* Digital Circle - Make everything readable */
@@ -313,15 +324,14 @@ const PrintStyles = () => (
         padding: 24px !important; /* Increased padding */
       }
       
-      /* All cards in Digital Circle */
+      /* All cards in Digital Circle - preserve grid layout */
       .digital-circle-component a {
         background: #f9fafb !important;
         border: 1px solid #d1d5db !important;
         display: flex !important;
         justify-content: flex-start !important;
         text-align: left !important;
-        padding: 16px !important; /* Increased padding for cards */
-        margin: 8px 0 !important; /* Add spacing between cards */
+        padding: 12px !important; /* Increased padding for cards */
       }
       
       /* All text elements - force dark color */
