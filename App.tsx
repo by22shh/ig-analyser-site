@@ -353,18 +353,29 @@ const App: React.FC = () => {
                         {error && (
                             <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
                                 {error.includes("ACCESS_DENIED_PRIVATE") ? (
-                                    <div className="p-6 bg-slate-900/90 border border-slate-700/80 rounded-xl text-center relative overflow-hidden group shadow-2xl">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 to-transparent pointer-events-none" />
-                                        <div className="relative z-10 flex flex-col items-center gap-3">
-                                            <div className="w-14 h-14 bg-slate-800/80 rounded-full flex items-center justify-center border border-slate-600 mb-2 shadow-inner">
-                                                 <Lock className="w-7 h-7 text-slate-400" />
+                                    <div className="p-6 bg-red-950/20 border border-red-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(220,38,38,0.1)] backdrop-blur-sm">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent pointer-events-none" />
+                                        
+                                        {/* Animated Scan Line */}
+                                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent animate-[scan_2s_linear_infinite]" />
+
+                                        <div className="relative z-10 flex flex-col items-center gap-4">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center border border-red-500/30 mb-2 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
+                                                     <Lock className="w-8 h-8 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
+                                                </div>
+                                                <div className="absolute inset-0 border border-red-500/20 rounded-full animate-ping opacity-20" />
                                             </div>
-                                            <h3 className="text-lg font-bold text-white font-display tracking-widest uppercase text-red-100">
-                                                {t('error_private_title')}
-                                            </h3>
-                                            <p className="text-slate-400 text-xs font-mono max-w-sm mx-auto leading-relaxed">
-                                                {t('error_private_desc')}
-                                            </p>
+                                            
+                                            <div className="space-y-2">
+                                                <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-red-100 drop-shadow-[0_0_10px_rgba(220,38,38,0.5)]">
+                                                    {t('error_private_title')}
+                                                </h3>
+                                                <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+                                                <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
+                                                    {t('error_private_desc')}
+                                                </p>
+                                            </div>
                                         </div>
                                      </div>
                                 ) : (
