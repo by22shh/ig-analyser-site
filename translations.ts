@@ -17,6 +17,8 @@ export const translations = {
     retry_analysis: "Повторить анализ (данные уже загружены)",
     error_private_title: "ДОСТУП ОГРАНИЧЕН",
     error_private_desc: "Профиль является приватным. Система может анализировать только открытые аккаунты. Пожалуйста, проверьте настройки приватности или попробуйте другой профиль.",
+    error_credits_title: "РЕСУРС ИСЧЕРПАН",
+    error_credits_desc: "Нейроядро временно недоступно из-за лимита вычислительных мощностей (OpenRouter Credits). Пожалуйста, пополните баланс API или свяжитесь с администратором.",
     
     // LoadingScreen
     stage_1: "Сбор Данных",
@@ -124,6 +126,8 @@ export const translations = {
     retry_analysis: "Retry Analysis (Data Loaded)",
     error_private_title: "ACCESS DENIED",
     error_private_desc: "This profile is private. The system can only analyze public accounts. Please check privacy settings or try another profile.",
+    error_credits_title: "SYSTEM OVERLOAD",
+    error_credits_desc: "Neural core is unavailable due to computational resource limits (OpenRouter Credits). Please top up API balance or contact admin.",
     
     // LoadingScreen
     stage_1: "Data Collection",

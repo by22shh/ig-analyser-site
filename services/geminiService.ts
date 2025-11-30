@@ -109,7 +109,14 @@ async function openRouterCompletion(
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(`OpenRouter API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+                const errorMessage = JSON.stringify(errorData);
+                
+                // Check for insufficient credits/quota
+                if (response.status === 402 || errorMessage.includes("credit") || errorMessage.includes("balance") || errorMessage.includes("quota")) {
+                    throw new Error("ACCESS_DENIED_CREDITS");
+                }
+                
+                throw new Error(`OpenRouter API Error: ${response.status} - ${errorMessage}`);
             }
 
             const data = await response.json();
@@ -302,6 +309,12 @@ export const analyzeProfileWithGemini = async (
 
     } catch (error: any) {
         console.error("Critical Strategy Generation Error:", error);
+        
+        // Propagate credit errors directly to UI
+        if (error.message === "ACCESS_DENIED_CREDITS") {
+            throw error;
+        }
+
         return {
             rawText: `Error: ${error.message}`,
             sections: [{ title: "SYSTEM ERROR", content: "Failed to generate report via OpenRouter. Please check logs." }],

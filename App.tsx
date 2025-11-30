@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe, Lock } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe, Lock, ZapOff } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
@@ -374,6 +374,32 @@ const App: React.FC = () => {
                                                 <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
                                                 <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
                                                     {t('error_private_desc')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                     </div>
+                                ) : error.includes("ACCESS_DENIED_CREDITS") ? (
+                                    <div className="p-6 bg-amber-950/20 border border-amber-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(245,158,11,0.1)] backdrop-blur-sm">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
+                                        
+                                        {/* Animated Glitch Line */}
+                                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent animate-[scan_3s_linear_infinite]" />
+
+                                        <div className="relative z-10 flex flex-col items-center gap-4">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 bg-amber-900/20 rounded-full flex items-center justify-center border border-amber-500/30 mb-2 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                                                     <ZapOff className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                                                </div>
+                                                <div className="absolute inset-0 border border-amber-500/20 rounded-full animate-pulse opacity-20" />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-amber-100 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                                    {t('error_credits_title')}
+                                                </h3>
+                                                <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+                                                <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
+                                                    {t('error_credits_desc')}
                                                 </p>
                                             </div>
                                         </div>
