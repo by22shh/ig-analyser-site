@@ -15,6 +15,8 @@ export const translations = {
     error_system: "Системная ошибка: Данные профиля отсутствуют.",
     error_analysis: "Ошибка анализа данных.",
     retry_analysis: "Повторить анализ (данные уже загружены)",
+    error_private_title: "ДОСТУП ОГРАНИЧЕН",
+    error_private_desc: "Профиль является приватным. Система может анализировать только открытые аккаунты. Пожалуйста, проверьте настройки приватности или попробуйте другой профиль.",
     
     // LoadingScreen
     stage_1: "Сбор Данных",
@@ -120,6 +122,8 @@ export const translations = {
     error_system: "System error: Profile data missing.",
     error_analysis: "Data analysis error.",
     retry_analysis: "Retry Analysis (Data Loaded)",
+    error_private_title: "ACCESS DENIED",
+    error_private_desc: "This profile is private. The system can only analyze public accounts. Please check privacy settings or try another profile.",
     
     // LoadingScreen
     stage_1: "Data Collection",

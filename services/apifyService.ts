@@ -98,6 +98,12 @@ export const fetchInstagramData = async (
              // It's a match, just maybe no posts
          } else {
              const foundUser = items[0]?.ownerUsername || items[0]?.owner?.username || "Unknown";
+             
+             // If foundUser is Unknown, it's highly likely the profile is private and Apify couldn't scrape metadata
+             if (foundUser === "Unknown") {
+                 throw new Error(`ACCESS_DENIED_PRIVATE: The profile @${username} is private. Analysis is unavailable.`);
+             }
+
              throw new Error(`Identity Mismatch: Scraped data belongs to '@${foundUser}', but you requested '@${username}'.`);
          }
     }

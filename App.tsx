@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe, Lock } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
@@ -352,10 +352,27 @@ const App: React.FC = () => {
 
                         {error && (
                             <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
-                                <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
-                                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-                                    <span>[ERROR]: {error}</span>
-                                </div>
+                                {error.includes("ACCESS_DENIED_PRIVATE") ? (
+                                    <div className="p-6 bg-slate-900/90 border border-slate-700/80 rounded-xl text-center relative overflow-hidden group shadow-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 to-transparent pointer-events-none" />
+                                        <div className="relative z-10 flex flex-col items-center gap-3">
+                                            <div className="w-14 h-14 bg-slate-800/80 rounded-full flex items-center justify-center border border-slate-600 mb-2 shadow-inner">
+                                                 <Lock className="w-7 h-7 text-slate-400" />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-white font-display tracking-widest uppercase text-red-100">
+                                                {t('error_private_title')}
+                                            </h3>
+                                            <p className="text-slate-400 text-xs font-mono max-w-sm mx-auto leading-relaxed">
+                                                {t('error_private_desc')}
+                                            </p>
+                                        </div>
+                                     </div>
+                                ) : (
+                                    <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
+                                        <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                        <span>[ERROR]: {error}</span>
+                                    </div>
+                                )}
                                 
                                 {/* Retry Action Logic */}
                                 {profileData && (
