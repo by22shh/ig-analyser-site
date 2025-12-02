@@ -376,10 +376,10 @@ const App: React.FC = () => {
                                                     {t('error_private_desc')}
                                                 </p>
                                                 <div className="mt-4 pt-4 border-t border-red-500/20">
-                                                    <p className="text-slate-400 text-xs font-semibold mb-2 max-w-sm mx-auto opacity-90">
+                                                    <p className="text-slate-300 text-xs font-semibold mb-2 max-w-sm mx-auto opacity-90">
                                                         {t('error_private_tip_title')}
                                                     </p>
-                                                    <ul className="text-slate-400 text-xs font-mono max-w-sm mx-auto space-y-1.5 opacity-80 text-left list-none">
+                                                    <ul className="text-slate-300 text-xs font-mono max-w-sm mx-auto space-y-1.5 opacity-90 text-left list-none">
                                                         <li className="flex items-start gap-2">
                                                             <span className="text-red-400/60 mt-0.5">→</span>
                                                             <span>{t('error_private_tip_1')}</span>
