@@ -17,6 +17,11 @@ export const translations = {
     retry_analysis: "Повторить анализ (данные уже загружены)",
     error_private_title: "ДОСТУП ОГРАНИЧЕН",
     error_private_desc: "Профиль является приватным. Система может анализировать только открытые аккаунты. Пожалуйста, проверьте настройки приватности или попробуйте другой профиль.",
+    error_private_tip_title: "Хотите проанализировать свой закрытый аккаунт?",
+    error_private_tip_1: "Откройте настройки приватности в Instagram",
+    error_private_tip_2: "Временно сделайте профиль открытым",
+    error_private_tip_3: "Запустите анализ",
+    error_private_tip_4: "После анализа верните настройки приватности обратно",
     error_credits_title: "РЕСУРС ИСЧЕРПАН",
     error_credits_desc: "Нейроядро временно недоступно из-за лимита вычислительных мощностей (OpenRouter Credits). Пожалуйста, пополните баланс API или свяжитесь с администратором.",
     
@@ -126,6 +131,11 @@ export const translations = {
     retry_analysis: "Retry Analysis (Data Loaded)",
     error_private_title: "ACCESS DENIED",
     error_private_desc: "This profile is private. The system can only analyze public accounts. Please check privacy settings or try another profile.",
+    error_private_tip_title: "Want to analyze your private account?",
+    error_private_tip_1: "Open Instagram privacy settings",
+    error_private_tip_2: "Temporarily make your profile public",
+    error_private_tip_3: "Run the analysis",
+    error_private_tip_4: "After analysis, restore privacy settings",
     error_credits_title: "SYSTEM OVERLOAD",
     error_credits_desc: "Neural core is unavailable due to computational resource limits (OpenRouter Credits). Please top up API balance or contact admin.",
     
