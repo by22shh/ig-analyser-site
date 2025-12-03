@@ -14,13 +14,13 @@ export interface InstagramPost {
   mentions: string[];
   likesCount: number;
   commentsCount: number;
-  latestComments: InstagramComment[]; 
+  latestComments: InstagramComment[];
   timestamp: string;
   displayUrl: string;
   url?: string; // Permalink to the post
   videoViewCount?: number;
   videoDuration?: number;
-  
+
   // Rich Metadata
   location?: {
     name: string;
@@ -47,14 +47,14 @@ export interface InstagramProfile {
   posts: InstagramPost[];
   externalUrl?: string;
   isVerified: boolean;
-  
+
   // Rich Metadata
   relatedProfiles?: {
     username: string;
     fullName: string;
     isVerified: boolean;
   }[];
-  
+
   _rawDebug?: any;
 }
 
@@ -62,5 +62,30 @@ export interface InstagramProfile {
 export interface StrategicReport {
   rawText: string;
   sections: { title: string; content: string }[];
-  visionAnalysis: string[]; 
+  visionAnalysis: string[];
+}
+
+// Yandex Image Search Types
+export interface YandexImageResult {
+  url: string;
+  format: 'IMAGE_FORMAT_JPEG' | 'IMAGE_FORMAT_GIF' | 'IMAGE_FORMAT_PNG';
+  width: string;
+  height: string;
+  passage: string;
+  host: string;
+  pageTitle: string;
+  pageUrl: string;
+}
+
+export interface YandexImageSearchResponse {
+  images: YandexImageResult[];
+  page: string;
+  id: string; // CBIR ID for pagination
+}
+
+export interface InstagramMatch {
+  username: string;
+  profileUrl: string;
+  confidence: number; // 0-100
+  source: 'url' | 'title' | 'description';
 }

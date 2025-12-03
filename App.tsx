@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe, Lock, ZapOff } from 'lucide-react';
+import { Instagram, Search, Eye, RefreshCw, AlertTriangle, History, Globe, Lock, ZapOff, Image as ImageIcon } from 'lucide-react';
 import { fetchInstagramData } from './services/apifyService';
 import { analyzeProfileWithGemini } from './services/geminiService';
 import { InstagramProfile, StrategicReport } from './types';
 import { LoadingScreen } from './components/LoadingScreen';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 import { ProfileAvatar } from './components/ProfileAvatar';
+import { PhotoUploadComponent } from './components/PhotoUploadComponent';
 import { getSearchHistory, addToSearchHistory, HistoryItem } from './utils/storage';
 import { useLanguage } from './contexts/LanguageContext';
 
@@ -16,12 +17,12 @@ const APIFY_TOKEN = process.env.VITE_APIFY_TOKEN || "";
 // --- VISUAL EFFECTS ---
 
 const CyberBackground = () => (
-  <div className="fixed inset-0 z-0 overflow-hidden bg-[#020617]"> 
-    {/* Base: Rich Dark Blue/Slate */}
-    <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen pointer-events-none"></div>
-    <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] bg-cyan-500/20 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen pointer-events-none"></div>
-    <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse pointer-events-none"></div>
-    <div className="absolute bottom-[-10%] left-[-50%] right-[-50%] h-[100%] 
+    <div className="fixed inset-0 z-0 overflow-hidden bg-[#020617]">
+        {/* Base: Rich Dark Blue/Slate */}
+        <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] bg-cyan-500/20 rounded-full blur-[120px] animate-pulse-slow delay-1000 mix-blend-screen pointer-events-none"></div>
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] left-[-50%] right-[-50%] h-[100%] 
         bg-[linear-gradient(to_right,rgba(6,182,212,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.15)_1px,transparent_1px)] 
         bg-[size:60px_60px] 
         [transform:perspective(1000px)_rotateX(60deg)] 
@@ -29,514 +30,556 @@ const CyberBackground = () => (
         animate-[grid-flow_10s_linear_infinite]
         pointer-events-none 
         z-0">
+        </div>
+        <div className="absolute inset-0 flex justify-evenly opacity-50 pointer-events-none z-0">
+            {[...Array(12)].map((_, i) => (
+                <div key={i} className="w-px h-full bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent relative overflow-hidden">
+                    <div
+                        className="absolute top-0 left-0 w-full h-64 bg-cyan-300 blur-[1px]"
+                        style={{
+                            animation: `scan ${3 + (i % 4)}s linear infinite`,
+                            animationDelay: `-${i * 0.5}s`,
+                            opacity: 0.7
+                        }}
+                    ></div>
+                </div>
+            ))}
+        </div>
+        <div className="absolute inset-0 z-0 opacity-30 mix-blend-overlay"
+            style={{
+                backgroundImage: 'radial-gradient(circle at center, transparent 0%, #020617 100%)',
+                backgroundSize: '100% 100%'
+            }}>
+        </div>
+        <div className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] opacity-20"></div>
     </div>
-    <div className="absolute inset-0 flex justify-evenly opacity-50 pointer-events-none z-0">
-        {[...Array(12)].map((_, i) => (
-            <div key={i} className="w-px h-full bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent relative overflow-hidden">
-                 <div 
-                    className="absolute top-0 left-0 w-full h-64 bg-cyan-300 blur-[1px]"
-                    style={{ 
-                        animation: `scan ${3 + (i % 4)}s linear infinite`,
-                        animationDelay: `-${i * 0.5}s`,
-                        opacity: 0.7
-                    }}
-                 ></div>
-            </div>
-        ))}
-    </div>
-    <div className="absolute inset-0 z-0 opacity-30 mix-blend-overlay" 
-         style={{ 
-            backgroundImage: 'radial-gradient(circle at center, transparent 0%, #020617 100%)',
-            backgroundSize: '100% 100%' 
-         }}>
-    </div>
-    <div className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] opacity-20"></div>
-  </div>
 );
 
 const AiCoreVisual = () => (
-  <div className="relative w-56 h-56 mx-auto mb-12 group pointer-events-none select-none">
-    <div className="absolute inset-0 bg-cyan-500/30 rounded-full blur-[50px] animate-pulse-slow"></div>
-    <div className="absolute inset-0 border border-cyan-400/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
-    <div className="absolute inset-0 border-t-2 border-cyan-400 rounded-full animate-[spin_10s_linear_infinite] shadow-[0_0_15px_rgba(34,211,238,0.5)]"></div>
-    <div className="absolute inset-4 border border-indigo-500/30 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
-    <div className="absolute inset-4 border-r-2 border-indigo-400 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
-    <div className="absolute inset-8 border border-cyan-300/20 rounded-full animate-[spin_4s_linear_infinite]"></div>
-    <div className="absolute inset-8 border-b-2 border-cyan-300 rounded-full animate-[spin_4s_linear_infinite]"></div>
-    <div className="absolute inset-[3.5rem] bg-[#0f172a]/90 backdrop-blur-md rounded-full border-2 border-cyan-500 flex items-center justify-center z-10 shadow-[0_0_40px_rgba(34,211,238,0.4)]">
-        <div className="relative">
-            <Eye className="w-12 h-12 text-cyan-400 animate-pulse" />
-            <div className="absolute inset-0 bg-cyan-400/40 blur-lg animate-pulse"></div>
+    <div className="relative w-56 h-56 mx-auto mb-12 group pointer-events-none select-none">
+        <div className="absolute inset-0 bg-cyan-500/30 rounded-full blur-[50px] animate-pulse-slow"></div>
+        <div className="absolute inset-0 border border-cyan-400/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+        <div className="absolute inset-0 border-t-2 border-cyan-400 rounded-full animate-[spin_10s_linear_infinite] shadow-[0_0_15px_rgba(34,211,238,0.5)]"></div>
+        <div className="absolute inset-4 border border-indigo-500/30 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
+        <div className="absolute inset-4 border-r-2 border-indigo-400 rounded-full animate-[spin_7s_linear_infinite_reverse]"></div>
+        <div className="absolute inset-8 border border-cyan-300/20 rounded-full animate-[spin_4s_linear_infinite]"></div>
+        <div className="absolute inset-8 border-b-2 border-cyan-300 rounded-full animate-[spin_4s_linear_infinite]"></div>
+        <div className="absolute inset-[3.5rem] bg-[#0f172a]/90 backdrop-blur-md rounded-full border-2 border-cyan-500 flex items-center justify-center z-10 shadow-[0_0_40px_rgba(34,211,238,0.4)]">
+            <div className="relative">
+                <Eye className="w-12 h-12 text-cyan-400 animate-pulse" />
+                <div className="absolute inset-0 bg-cyan-400/40 blur-lg animate-pulse"></div>
+            </div>
         </div>
     </div>
-  </div>
 );
 
 // --- MAIN APP ---
 
 const App: React.FC = () => {
-  const { t, language, setLanguage } = useLanguage();
-  
-  // Loading state is now granular: 1 = Apify, 2 = Images, 3 = Final
-  const [step, setStep] = useState<'input' | 'loading' | 'result'>('input');
-  const [loadingStage, setLoadingStage] = useState<1 | 2 | 3>(1);
-  const [loadingProgress, setLoadingProgress] = useState<number>(0);
-  const [loadingMessage, setLoadingMessage] = useState<string>("");
-  const [analysisMode, setAnalysisMode] = useState<'standard' | 'debt' | 'hr' | 'influencer'>('standard');
-  const [targetPosition, setTargetPosition] = useState('');
+    const { t, language, setLanguage } = useLanguage();
 
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  
-  const [profileData, setProfileData] = useState<InstagramProfile | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<StrategicReport | null>(null);
-  
-  // Load history on mount
-  const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
-  
-  useEffect(() => {
-      setRecentSearches(getSearchHistory());
-  }, [step]); // Refresh when step changes (e.g. after successful analysis)
+    // Loading state is now granular: 1 = Apify, 2 = Images, 3 = Final
+    const [step, setStep] = useState<'input' | 'loading' | 'result'>('input');
+    const [loadingStage, setLoadingStage] = useState<1 | 2 | 3>(1);
+    const [loadingProgress, setLoadingProgress] = useState<number>(0);
+    const [loadingMessage, setLoadingMessage] = useState<string>("");
+    const [analysisMode, setAnalysisMode] = useState<'standard' | 'debt' | 'hr' | 'influencer'>('standard');
+    const [targetPosition, setTargetPosition] = useState('');
+    const [searchMode, setSearchMode] = useState<'username' | 'photo'>('username');
 
-  // Simulated progress for Stage 3
-  useEffect(() => {
-    let interval: any;
-    if (step === 'loading' && loadingStage === 3) {
-        setLoadingProgress(prev => (prev === 100 ? 0 : prev));
-        interval = setInterval(() => {
-            setLoadingProgress(prev => {
-                const increment = Math.max(0.5, (98 - prev) / 50); 
-                return prev >= 98 ? 98 : prev + increment;
-            });
-        }, 200);
-    }
-    return () => clearInterval(interval);
-  }, [step, loadingStage]);
+    const [username, setUsername] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
-  // Orchestrates the analysis process.
-  // Can start from scratch (fetch + analyze) or from existing data (analyze only).
-  const startAnalysisFlow = async (inputUsername?: string, existingData?: InstagramProfile) => {
-      setError(null);
-      setStep('loading');
-      
-      let currentData = existingData;
+    const [profileData, setProfileData] = useState<InstagramProfile | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<StrategicReport | null>(null);
 
-      // PHASE 1: Fetch Data (if needed)
-      if (!currentData && inputUsername) {
-          setLoadingStage(1);
-          setLoadingProgress(10);
-          setLoadingMessage(t('loading_connect'));
+    // Load history on mount
+    const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
 
-          let cleanUsername = inputUsername.trim();
-          if (cleanUsername.includes('instagram.com/')) {
-              const parts = cleanUsername.split('instagram.com/');
-              if (parts[1]) cleanUsername = parts[1].split('/')[0].split('?')[0];
-          }
-          cleanUsername = cleanUsername.replace('@', '').replace(/\s/g, '');
+    useEffect(() => {
+        setRecentSearches(getSearchHistory());
+    }, [step]); // Refresh when step changes (e.g. after successful analysis)
 
-          try {
-              if (!APIFY_TOKEN) throw new Error("Ошибка: Не найден VITE_APIFY_TOKEN.");
-              currentData = await fetchInstagramData(cleanUsername, APIFY_TOKEN);
-              setProfileData(currentData);
-              setLoadingProgress(100);
-              await new Promise(r => setTimeout(r, 400));
-          } catch (err: any) {
-              console.error(err);
-              setError(err.message || t('error_fetch'));
-              setStep('input');
-              return;
-          }
-      }
+    // Simulated progress for Stage 3
+    useEffect(() => {
+        let interval: any;
+        if (step === 'loading' && loadingStage === 3) {
+            setLoadingProgress(prev => (prev === 100 ? 0 : prev));
+            interval = setInterval(() => {
+                setLoadingProgress(prev => {
+                    const increment = Math.max(0.5, (98 - prev) / 50);
+                    return prev >= 98 ? 98 : prev + increment;
+                });
+            }, 200);
+        }
+        return () => clearInterval(interval);
+    }, [step, loadingStage]);
 
-      if (!currentData) {
-          setError(t('error_system'));
-          setStep('input');
-          return;
-      }
+    // Orchestrates the analysis process.
+    // Can start from scratch (fetch + analyze) or from existing data (analyze only).
+    const startAnalysisFlow = async (inputUsername?: string, existingData?: InstagramProfile) => {
+        setError(null);
+        setStep('loading');
 
-      // PHASE 2 & 3: AI Analysis
-      setLoadingStage(2);
-      setLoadingProgress(0);
-      setLoadingMessage(t('stage_2'));
+        let currentData = existingData;
 
-      try {
-          const analysis = await analyzeProfileWithGemini(currentData, (current, total, stage) => {
-            if (stage === 'images') {
-                const percentage = Math.round((current / total) * 100);
-                setLoadingProgress(percentage);
-                setLoadingMessage(t('loading_images', { current, total }));
-            } else if (stage === 'final') {
-                setLoadingStage(3);
-                setLoadingProgress(0);
-                setLoadingMessage(t('loading_final'));
+        // PHASE 1: Fetch Data (if needed)
+        if (!currentData && inputUsername) {
+            setLoadingStage(1);
+            setLoadingProgress(10);
+            setLoadingMessage(t('loading_connect'));
+
+            let cleanUsername = inputUsername.trim();
+            if (cleanUsername.includes('instagram.com/')) {
+                const parts = cleanUsername.split('instagram.com/');
+                if (parts[1]) cleanUsername = parts[1].split('/')[0].split('?')[0];
             }
-          }, language, analysisMode, targetPosition);
-          
-          setAnalysisResult(analysis);
-          
-          // SAVE TO HISTORY
-          addToSearchHistory(currentData.username, currentData, analysis);
-          
-          setStep('result');
-          // Scroll logic handled inside AnalysisDashboard on mount
-      } catch (err: any) {
-          console.error(err);
-          setError(err.message || t('error_analysis'));
-          // Keep profile data in state so user can retry just the analysis part
-          setStep('input');
-      }
-  };
+            cleanUsername = cleanUsername.replace('@', '').replace(/\s/g, '');
 
-  const handleAnalyzeClick = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username) return;
-    // Clear previous data to start fresh
-    setProfileData(null);
-    setAnalysisResult(null);
-    startAnalysisFlow(username);
-  };
+            try {
+                if (!APIFY_TOKEN) throw new Error("Ошибка: Не найден VITE_APIFY_TOKEN.");
+                currentData = await fetchInstagramData(cleanUsername, APIFY_TOKEN);
+                setProfileData(currentData);
+                setLoadingProgress(100);
+                await new Promise(r => setTimeout(r, 400));
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message || t('error_fetch'));
+                setStep('input');
+                return;
+            }
+        }
 
-  const handleRetryAnalysis = () => {
-      if (profileData) {
-          startAnalysisFlow(undefined, profileData);
-      }
-  };
-  
-  const loadFromHistory = (item: HistoryItem) => {
-      if (item.profileData && item.reportData) {
-           setProfileData(item.profileData);
-           setAnalysisResult(item.reportData);
-           setStep('result');
-           // Scroll logic handled inside AnalysisDashboard on mount
-      } else {
-           // Re-run analysis if we only saved the username
-           setUsername(item.username);
-           startAnalysisFlow(item.username);
-      }
-  };
+        if (!currentData) {
+            setError(t('error_system'));
+            setStep('input');
+            return;
+        }
 
-  return (
-    <div className="min-h-screen w-full text-slate-200 relative overflow-x-hidden selection:bg-cyan-400 selection:text-black font-sans bg-black/0">
-      <CyberBackground />
+        // PHASE 2 & 3: AI Analysis
+        setLoadingStage(2);
+        setLoadingProgress(0);
+        setLoadingMessage(t('stage_2'));
 
-      <nav className="w-full border-b border-white/10 bg-[#0f172a]/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-cyan-500 text-slate-900 rounded flex items-center justify-center font-bold shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-                    <Eye className="w-5 h-5" />
+        try {
+            const analysis = await analyzeProfileWithGemini(currentData, (current, total, stage) => {
+                if (stage === 'images') {
+                    const percentage = Math.round((current / total) * 100);
+                    setLoadingProgress(percentage);
+                    setLoadingMessage(t('loading_images', { current, total }));
+                } else if (stage === 'final') {
+                    setLoadingStage(3);
+                    setLoadingProgress(0);
+                    setLoadingMessage(t('loading_final'));
+                }
+            }, language, analysisMode, targetPosition);
+
+            setAnalysisResult(analysis);
+
+            // SAVE TO HISTORY
+            addToSearchHistory(currentData.username, currentData, analysis);
+
+            setStep('result');
+            // Scroll logic handled inside AnalysisDashboard on mount
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || t('error_analysis'));
+            // Keep profile data in state so user can retry just the analysis part
+            setStep('input');
+        }
+    };
+
+    const handleAnalyzeClick = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!username) return;
+        // Clear previous data to start fresh
+        setProfileData(null);
+        setAnalysisResult(null);
+        startAnalysisFlow(username);
+    };
+
+    const handleRetryAnalysis = () => {
+        if (profileData) {
+            startAnalysisFlow(undefined, profileData);
+        }
+    };
+
+    const loadFromHistory = (item: HistoryItem) => {
+        if (item.profileData && item.reportData) {
+            setProfileData(item.profileData);
+            setAnalysisResult(item.reportData);
+            setStep('result');
+            // Scroll logic handled inside AnalysisDashboard on mount
+        } else {
+            // Re-run analysis if we only saved the username
+            setUsername(item.username);
+            startAnalysisFlow(item.username);
+        }
+    };
+
+    return (
+        <div className="min-h-screen w-full text-slate-200 relative overflow-x-hidden selection:bg-cyan-400 selection:text-black font-sans bg-black/0">
+            <CyberBackground />
+
+            <nav className="w-full border-b border-white/10 bg-[#0f172a]/60 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-cyan-500 text-slate-900 rounded flex items-center justify-center font-bold shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                            <Eye className="w-5 h-5" />
+                        </div>
+                        <span className="font-display font-bold text-lg tracking-widest text-white">ZRETI</span>
+                    </div>
+
+                    {/* Language Switcher */}
+                    <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-white/10">
+                        <button
+                            onClick={() => setLanguage('en')}
+                            className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'en' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            EN
+                        </button>
+                        <button
+                            onClick={() => setLanguage('ru')}
+                            className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'ru' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            RU
+                        </button>
+                    </div>
                 </div>
-                <span className="font-display font-bold text-lg tracking-widest text-white">ZRETI</span>
-            </div>
+            </nav>
 
-            {/* Language Switcher */}
-            <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-white/10">
-                 <button 
-                    onClick={() => setLanguage('en')}
-                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'en' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
-                 >
-                    EN
-                 </button>
-                 <button 
-                    onClick={() => setLanguage('ru')}
-                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${language === 'ru' ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-slate-400 hover:text-white'}`}
-                 >
-                    RU
-                 </button>
-            </div>
-        </div>
-      </nav>
+            <main className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 relative z-10">
 
-      <main className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 relative z-10">
-        
-        {step === 'input' && (
-            <div className="w-full max-w-2xl animate-[fadeIn_0.8s_ease-out] relative">
-                <AiCoreVisual />
+                {step === 'input' && (
+                    <div className="w-full max-w-2xl animate-[fadeIn_0.8s_ease-out] relative">
+                        <AiCoreVisual />
 
-                <div className="text-center mb-12 relative z-20">
-                    <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-6 uppercase tracking-tight drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] flex flex-col items-center leading-tight">
-                        <span>{t('app_title_prefix')}</span>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 animate-pulse my-2">{t('app_title_gradient')}</span>
-                        <span className="text-3xl md:text-5xl tracking-widest font-sans font-extrabold mt-1">{t('app_title_suffix')}</span>
-                    </h1>
-                    <p className="text-slate-300 max-w-lg mx-auto font-mono text-sm bg-black/40 backdrop-blur px-4 py-2 rounded border border-white/10">
-                        {t('app_description')}
-                    </p>
-                </div>
-
-                <div className="bg-[#0f172a]/80 border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group transition-all hover:border-cyan-500/50 hover:shadow-[0_0_50px_rgba(34,211,238,0.1)]">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[shimmer_2s_infinite]"></div>
-                    
-                    <form onSubmit={handleAnalyzeClick} className="space-y-6 relative z-20">
-                        <div>
-                            <label className="flex justify-between text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2 font-mono">
-                                <span>{t('input_label')}</span>
-                                <span className="text-slate-500">REQUIRED</span>
-                            </label>
-                            <div className="relative group/input">
-                                <div className="absolute inset-0 bg-cyan-500/20 rounded-lg blur-md opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-500"></div>
-                                <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within/input:text-cyan-400 transition duration-300" />
-                                <input 
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder={t('input_placeholder')}
-                                    className="relative w-full bg-[#020617] border border-slate-700 rounded-lg py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all font-mono shadow-inner"
-                                    required
-                                />
-                            </div>
+                        <div className="text-center mb-12 relative z-20">
+                            <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-6 uppercase tracking-tight drop-shadow-[0_0_30px_rgba(34,211,238,0.5)] flex flex-col items-center leading-tight">
+                                <span>{t('app_title_prefix')}</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 animate-pulse my-2">{t('app_title_gradient')}</span>
+                                <span className="text-3xl md:text-5xl tracking-widest font-sans font-extrabold mt-1">{t('app_title_suffix')}</span>
+                            </h1>
+                            <p className="text-slate-300 max-w-lg mx-auto font-mono text-sm bg-black/40 backdrop-blur px-4 py-2 rounded border border-white/10">
+                                {t('app_description')}
+                            </p>
                         </div>
 
-                        {/* MODE SELECTION */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50 mb-4">
-                            <button
-                                type="button"
-                                onClick={() => setAnalysisMode('standard')}
-                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                    analysisMode === 'standard' 
-                                        ? 'bg-cyan-600 text-white shadow-lg' 
+                        <div className="bg-[#0f172a]/80 border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group transition-all hover:border-cyan-500/50 hover:shadow-[0_0_50px_rgba(34,211,238,0.1)]">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[shimmer_2s_infinite]"></div>
+
+                            {/* SEARCH MODE TOGGLE */}
+                            <div className="flex gap-2 mb-6 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50 relative z-20">
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchMode('username')}
+                                    className={`flex-1 py-3 px-4 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${searchMode === 'username'
+                                        ? 'bg-cyan-600 text-white shadow-lg'
                                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                                }`}
-                            >
-                                {t('mode_standard')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setAnalysisMode('debt')}
-                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                    analysisMode === 'debt' 
-                                        ? 'bg-red-600 text-white shadow-lg shadow-red-500/20' 
-                                        : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
-                                }`}
-                            >
-                                {t('mode_debt')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setAnalysisMode('hr')}
-                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                    analysisMode === 'hr' 
-                                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
-                                        : 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
-                                }`}
-                            >
-                                {t('mode_hr')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setAnalysisMode('influencer')}
-                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                    analysisMode === 'influencer' 
-                                        ? 'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20' 
-                                        : 'text-slate-400 hover:text-fuchsia-400 hover:bg-slate-800'
-                                }`}
-                            >
-                                {t('mode_influencer')}
-                            </button>
-                        </div>
-
-                        {/* HR POSITION INPUT */}
-                        {analysisMode === 'hr' && (
-                            <div className="mb-4 animate-[fadeIn_0.3s_ease-out]">
-                                <label className="flex justify-between text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-2 font-mono">
-                                    <span>{t('hr_position_label')}</span>
-                                </label>
-                                <input 
-                                    type="text"
-                                    value={targetPosition}
-                                    onChange={(e) => setTargetPosition(e.target.value)}
-                                    placeholder={t('hr_position_placeholder')}
-                                    className="w-full bg-[#020617] border border-emerald-700/50 rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono text-sm"
-                                />
+                                        }`}
+                                >
+                                    <Instagram className="w-4 h-4" />
+                                    {t('search_mode_username')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchMode('photo')}
+                                    className={`flex-1 py-3 px-4 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${searchMode === 'photo'
+                                        ? 'bg-cyan-600 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                                        }`}
+                                >
+                                    <ImageIcon className="w-4 h-4" />
+                                    {t('search_mode_photo')}
+                                </button>
                             </div>
-                        )}
 
-                        {error && (
-                            <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
-                                {error.includes("ACCESS_DENIED_PRIVATE") ? (
-                                    <div className="p-6 bg-red-950/20 border border-red-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(220,38,38,0.1)] backdrop-blur-sm">
-                                        <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent pointer-events-none" />
-                                        
-                                        {/* Animated Scan Line */}
-                                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent animate-[scan_2s_linear_infinite]" />
-
-                                        <div className="relative z-10 flex flex-col items-center gap-4">
-                                            <div className="relative">
-                                                <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center border border-red-500/30 mb-2 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-                                                     <Lock className="w-8 h-8 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
-                                                </div>
-                                                <div className="absolute inset-0 border border-red-500/20 rounded-full animate-ping opacity-20" />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-red-100 drop-shadow-[0_0_10px_rgba(220,38,38,0.5)]">
-                                                    {t('error_private_title')}
-                                                </h3>
-                                                <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
-                                                <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
-                                                    {t('error_private_desc')}
-                                                </p>
-                                                <div className="mt-4 pt-4 border-t border-red-500/20">
-                                                    <p className="text-slate-300 text-xs font-semibold mb-2 max-w-sm mx-auto opacity-90">
-                                                        {t('error_private_tip_title')}
-                                                    </p>
-                                                    <ul className="text-slate-300 text-xs font-mono max-w-sm mx-auto space-y-1.5 opacity-90 text-left list-none">
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="text-red-400/60 mt-0.5">→</span>
-                                                            <span>{t('error_private_tip_1')}</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="text-red-400/60 mt-0.5">→</span>
-                                                            <span>{t('error_private_tip_2')}</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="text-red-400/60 mt-0.5">→</span>
-                                                            <span>{t('error_private_tip_3')}</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2">
-                                                            <span className="text-red-400/60 mt-0.5">→</span>
-                                                            <span>{t('error_private_tip_4')}</span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
+                            <form onSubmit={handleAnalyzeClick} className="space-y-6 relative z-20">
+                                {/* USERNAME INPUT OR PHOTO UPLOAD */}
+                                {searchMode === 'username' ? (
+                                    <div>
+                                        <label className="flex justify-between text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2 font-mono">
+                                            <span>{t('input_label')}</span>
+                                            <span className="text-slate-500">REQUIRED</span>
+                                        </label>
+                                        <div className="relative group/input">
+                                            <div className="absolute inset-0 bg-cyan-500/20 rounded-lg blur-md opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-500"></div>
+                                            <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within/input:text-cyan-400 transition duration-300" />
+                                            <input
+                                                type="text"
+                                                value={username}
+                                                onChange={(e) => setUsername(e.target.value)}
+                                                placeholder={t('input_placeholder')}
+                                                className="relative w-full bg-[#020617] border border-slate-700 rounded-lg py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all font-mono shadow-inner"
+                                                required
+                                            />
                                         </div>
-                                     </div>
-                                ) : error.includes("ACCESS_DENIED_CREDITS") ? (
-                                    <div className="p-6 bg-amber-950/20 border border-amber-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(245,158,11,0.1)] backdrop-blur-sm">
-                                        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
-                                        
-                                        {/* Animated Glitch Line */}
-                                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent animate-[scan_3s_linear_infinite]" />
-
-                                        <div className="relative z-10 flex flex-col items-center gap-4">
-                                            <div className="relative">
-                                                <div className="w-16 h-16 bg-amber-900/20 rounded-full flex items-center justify-center border border-amber-500/30 mb-2 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                                                     <ZapOff className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
-                                                </div>
-                                                <div className="absolute inset-0 border border-amber-500/20 rounded-full animate-pulse opacity-20" />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-amber-100 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                                                    {t('error_credits_title')}
-                                                </h3>
-                                                <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-                                                <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
-                                                    {t('error_credits_desc')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                     </div>
+                                    </div>
                                 ) : (
-                                    <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
-                                        <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-                                        <span>[ERROR]: {error}</span>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-3 block font-mono">
+                                            {t('photo_upload_title')}
+                                        </label>
+                                        <PhotoUploadComponent
+                                            onUsernameSelect={(selectedUsername) => {
+                                                setUsername(selectedUsername);
+                                                setSearchMode('username');
+                                            }}
+                                        />
                                     </div>
                                 )}
-                                
-                                {/* Retry Action Logic */}
-                                {profileData && (
+
+                                {/* MODE SELECTION - Only show in username mode */}
+                                {searchMode === 'username' && (
+                                    <>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1 bg-slate-900/50 rounded-lg border border-slate-700/50 mb-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setAnalysisMode('standard')}
+                                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${analysisMode === 'standard'
+                                                    ? 'bg-cyan-600 text-white shadow-lg'
+                                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                                                    }`}
+                                            >
+                                                {t('mode_standard')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAnalysisMode('debt')}
+                                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${analysisMode === 'debt'
+                                                    ? 'bg-red-600 text-white shadow-lg shadow-red-500/20'
+                                                    : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
+                                                    }`}
+                                            >
+                                                {t('mode_debt')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAnalysisMode('hr')}
+                                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${analysisMode === 'hr'
+                                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
+                                                    : 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
+                                                    }`}
+                                            >
+                                                {t('mode_hr')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAnalysisMode('influencer')}
+                                                className={`py-2 px-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${analysisMode === 'influencer'
+                                                    ? 'bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20'
+                                                    : 'text-slate-400 hover:text-fuchsia-400 hover:bg-slate-800'
+                                                    }`}
+                                            >
+                                                {t('mode_influencer')}
+                                            </button>
+                                        </div>
+
+                                        {/* HR POSITION INPUT */}
+                                        {analysisMode === 'hr' && (
+                                            <div className="mb-4 animate-[fadeIn_0.3s_ease-out]">
+                                                <label className="flex justify-between text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-2 font-mono">
+                                                    <span>{t('hr_position_label')}</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={targetPosition}
+                                                    onChange={(e) => setTargetPosition(e.target.value)}
+                                                    placeholder={t('hr_position_placeholder')}
+                                                    className="w-full bg-[#020617] border border-emerald-700/50 rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono text-sm"
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {error && (
+                                    <div className="flex flex-col gap-2 animate-[fadeIn_0.3s_ease-out]">
+                                        {error.includes("ACCESS_DENIED_PRIVATE") ? (
+                                            <div className="p-6 bg-red-950/20 border border-red-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(220,38,38,0.1)] backdrop-blur-sm">
+                                                <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent pointer-events-none" />
+
+                                                {/* Animated Scan Line */}
+                                                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent animate-[scan_2s_linear_infinite]" />
+
+                                                <div className="relative z-10 flex flex-col items-center gap-4">
+                                                    <div className="relative">
+                                                        <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center border border-red-500/30 mb-2 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
+                                                            <Lock className="w-8 h-8 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
+                                                        </div>
+                                                        <div className="absolute inset-0 border border-red-500/20 rounded-full animate-ping opacity-20" />
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-red-100 drop-shadow-[0_0_10px_rgba(220,38,38,0.5)]">
+                                                            {t('error_private_title')}
+                                                        </h3>
+                                                        <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+                                                        <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
+                                                            {t('error_private_desc')}
+                                                        </p>
+                                                        <div className="mt-4 pt-4 border-t border-red-500/20">
+                                                            <p className="text-slate-300 text-xs font-semibold mb-2 max-w-sm mx-auto opacity-90">
+                                                                {t('error_private_tip_title')}
+                                                            </p>
+                                                            <ul className="text-slate-300 text-xs font-mono max-w-sm mx-auto space-y-1.5 opacity-90 text-left list-none">
+                                                                <li className="flex items-start gap-2">
+                                                                    <span className="text-red-400/60 mt-0.5">→</span>
+                                                                    <span>{t('error_private_tip_1')}</span>
+                                                                </li>
+                                                                <li className="flex items-start gap-2">
+                                                                    <span className="text-red-400/60 mt-0.5">→</span>
+                                                                    <span>{t('error_private_tip_2')}</span>
+                                                                </li>
+                                                                <li className="flex items-start gap-2">
+                                                                    <span className="text-red-400/60 mt-0.5">→</span>
+                                                                    <span>{t('error_private_tip_3')}</span>
+                                                                </li>
+                                                                <li className="flex items-start gap-2">
+                                                                    <span className="text-red-400/60 mt-0.5">→</span>
+                                                                    <span>{t('error_private_tip_4')}</span>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : error.includes("ACCESS_DENIED_CREDITS") ? (
+                                            <div className="p-6 bg-amber-950/20 border border-amber-500/30 rounded-xl text-center relative overflow-hidden group shadow-[0_0_40px_rgba(245,158,11,0.1)] backdrop-blur-sm">
+                                                <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
+
+                                                {/* Animated Glitch Line */}
+                                                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent animate-[scan_3s_linear_infinite]" />
+
+                                                <div className="relative z-10 flex flex-col items-center gap-4">
+                                                    <div className="relative">
+                                                        <div className="w-16 h-16 bg-amber-900/20 rounded-full flex items-center justify-center border border-amber-500/30 mb-2 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                                                            <ZapOff className="w-8 h-8 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                                                        </div>
+                                                        <div className="absolute inset-0 border border-amber-500/20 rounded-full animate-pulse opacity-20" />
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-xl font-bold text-white font-display tracking-[0.2em] uppercase text-amber-100 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                                            {t('error_credits_title')}
+                                                        </h3>
+                                                        <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+                                                        <p className="text-slate-300 text-xs font-mono max-w-sm mx-auto leading-relaxed opacity-90">
+                                                            {t('error_credits_desc')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-red-950/80 border border-red-500/50 rounded-lg text-red-200 text-xs font-mono flex items-center gap-3 shadow-lg">
+                                                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                                <span>[ERROR]: {error}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Retry Action Logic */}
+                                        {profileData && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRetryAnalysis}
+                                                className="w-full bg-cyber-800 hover:bg-cyber-700 border border-cyber-accent/30 text-cyber-accent py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-mono text-xs uppercase tracking-wider"
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                                {t('retry_analysis')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {!profileData && (
                                     <button
-                                        type="button"
-                                        onClick={handleRetryAnalysis}
-                                        className="w-full bg-cyber-800 hover:bg-cyber-700 border border-cyber-accent/30 text-cyber-accent py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-mono text-xs uppercase tracking-wider"
+                                        type="submit"
+                                        className={`w-full font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20
+                                    ${analysisMode === 'debt'
+                                                ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-500/20 hover:shadow-red-500/40 border-red-400/20'
+                                                : analysisMode === 'hr'
+                                                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/20 hover:shadow-emerald-500/40 border-emerald-400/20'
+                                                    : analysisMode === 'influencer'
+                                                        ? 'bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400 shadow-fuchsia-500/20 hover:shadow-fuchsia-500/40 border-fuchsia-400/20'
+                                                        : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400'
+                                            }`}
                                     >
-                                        <RefreshCw className="w-4 h-4" />
-                                        {t('retry_analysis')}
+                                        <span className="flex items-center gap-2 text-lg">
+                                            {analysisMode === 'debt' ? t('btn_debt') : analysisMode === 'hr' ? t('btn_hr') : analysisMode === 'influencer' ? t('btn_influencer') : t('button_analyze')} <Search className="w-5 h-5" />
+                                        </span>
                                     </button>
                                 )}
-                            </div>
-                        )}
+                            </form>
 
-                        {!profileData && (
-                            <button 
-                                type="submit" 
-                                className={`w-full font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20
-                                    ${analysisMode === 'debt' 
-                                        ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-500/20 hover:shadow-red-500/40 border-red-400/20' 
-                                        : analysisMode === 'hr'
-                                            ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/20 hover:shadow-emerald-500/40 border-emerald-400/20'
-                                            : analysisMode === 'influencer'
-                                                ? 'bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400 shadow-fuchsia-500/20 hover:shadow-fuchsia-500/40 border-fuchsia-400/20'
-                                                : 'bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400'
-                                    }`}
-                            >
-                                <span className="flex items-center gap-2 text-lg">
-                                    {analysisMode === 'debt' ? t('btn_debt') : analysisMode === 'hr' ? t('btn_hr') : analysisMode === 'influencer' ? t('btn_influencer') : t('button_analyze')} <Search className="w-5 h-5" />
-                                </span>
-                            </button>
-                        )}
-                    </form>
-                    
-                    {/* RECENT SEARCHES */}
-                    {recentSearches.length > 0 && (
-                        <div className="mt-8 pt-6 border-t border-white/10 relative z-20">
-                             <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4 uppercase tracking-widest">
-                                <History className="w-3 h-3" /> {t('recent_searches')}
-                             </div>
-                             <div className="flex flex-wrap gap-2">
-                                {recentSearches.map((item) => (
-                                    <button
-                                        key={item.username}
-                                        onClick={() => loadFromHistory(item)}
-                                        className="group flex items-center gap-3 bg-slate-800/50 hover:bg-cyber-900/80 border border-slate-700 hover:border-cyber-accent/50 rounded-lg p-2 pr-4 transition-all"
-                                    >
-                                        <div className="w-8 h-8 rounded bg-slate-700 overflow-hidden flex items-center justify-center">
-                                            {item.profileData?.profilePicUrl ? (
-                                                <ProfileAvatar 
-                                                    src={item.profileData.profilePicUrl} 
-                                                    alt={item.username} 
-                                                    className="w-full h-full object-cover" 
-                                                />
-                                            ) : (
-                                                <Instagram className="w-4 h-4 text-slate-500" />
-                                            )}
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent">@{item.username}</div>
-                                            <div className="text-[10px] text-slate-500">
-                                                {new Date(item.timestamp).toLocaleDateString()}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                             </div>
+                            {/* RECENT SEARCHES */}
+                            {recentSearches.length > 0 && (
+                                <div className="mt-8 pt-6 border-t border-white/10 relative z-20">
+                                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4 uppercase tracking-widest">
+                                        <History className="w-3 h-3" /> {t('recent_searches')}
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {recentSearches.map((item) => (
+                                            <button
+                                                key={item.username}
+                                                onClick={() => loadFromHistory(item)}
+                                                className="group flex items-center gap-3 bg-slate-800/50 hover:bg-cyber-900/80 border border-slate-700 hover:border-cyber-accent/50 rounded-lg p-2 pr-4 transition-all"
+                                            >
+                                                <div className="w-8 h-8 rounded bg-slate-700 overflow-hidden flex items-center justify-center">
+                                                    {item.profileData?.profilePicUrl ? (
+                                                        <ProfileAvatar
+                                                            src={item.profileData.profilePicUrl}
+                                                            alt={item.username}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <Instagram className="w-4 h-4 text-slate-500" />
+                                                    )}
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-xs font-bold text-slate-200 group-hover:text-cyber-accent">@{item.username}</div>
+                                                    <div className="text-[10px] text-slate-500">
+                                                        {new Date(item.timestamp).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
-            </div>
-        )}
+                    </div>
+                )}
 
-        {step === 'loading' && (
-            <div className="w-full max-w-xl animate-[fadeIn_0.5s_ease-out]">
-                <LoadingScreen 
-                    stage={loadingStage}
-                    progress={loadingProgress}
-                    progressMessage={loadingMessage}
-                    mode={analysisMode}
-                />
-            </div>
-        )}
+                {step === 'loading' && (
+                    <div className="w-full max-w-xl animate-[fadeIn_0.5s_ease-out]">
+                        <LoadingScreen
+                            stage={loadingStage}
+                            progress={loadingProgress}
+                            progressMessage={loadingMessage}
+                            mode={analysisMode}
+                        />
+                    </div>
+                )}
 
-        {step === 'result' && profileData && analysisResult && (
-            <AnalysisDashboard 
-                profile={profileData} 
-                analysis={analysisResult} 
-                onReset={() => {
-                    setStep('input');
-                    setProfileData(null);
-                    setAnalysisResult(null);
-                    setUsername('');
-                    setLoadingMessage("");
-                    setLoadingStage(1);
-                    setLoadingProgress(0);
-                }}
-            />
-        )}
+                {step === 'result' && profileData && analysisResult && (
+                    <AnalysisDashboard
+                        profile={profileData}
+                        analysis={analysisResult}
+                        onReset={() => {
+                            setStep('input');
+                            setProfileData(null);
+                            setAnalysisResult(null);
+                            setUsername('');
+                            setLoadingMessage("");
+                            setLoadingStage(1);
+                            setLoadingProgress(0);
+                        }}
+                    />
+                )}
 
-      </main>
-    </div>
-  );
+            </main>
+        </div>
+    );
 };
 
 export default App;

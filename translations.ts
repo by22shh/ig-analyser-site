@@ -24,7 +24,7 @@ export const translations = {
     error_private_tip_4: "После анализа верните настройки приватности обратно",
     error_credits_title: "РЕСУРС ИСЧЕРПАН",
     error_credits_desc: "Нейроядро временно недоступно из-за лимита вычислительных мощностей (OpenRouter Credits). Пожалуйста, пополните баланс API или свяжитесь с администратором.",
-    
+
     // LoadingScreen
     stage_1: "Сбор Данных",
     stage_2: "Обработка Медиа",
@@ -37,7 +37,7 @@ export const translations = {
     loading_images_debt: "Сканирование визуальных маркеров достатка...",
     loading_final: "Синтез данных и формирование досье...",
     loading_final_debt: "Сопоставление фактов и генерация стратегии взыскания...",
-    
+
     // AnalysisDashboard
     dossier_prefix: "ОТЧЕТ:",
     followers: "Подписчики",
@@ -59,7 +59,7 @@ export const translations = {
     er_high: "Высокий",
     er_avg: "Средний",
     er_tooltip: "Engagement Rate (ER) — это процент подписчиков, которые взаимодействуют с контентом (лайки + комментарии). Высокий ER > 3% означает живую и лояльную аудиторию.",
-    
+
     // DigitalCircle
     circle_title: "Цифровой круг (Близкие связи)",
     badge_close: "Близкие",
@@ -90,7 +90,7 @@ export const translations = {
     chat_chips_2: "Оцени искренность",
     chat_chips_3: "Психологический портрет",
     chat_title: "AI Ассистент",
-    
+
     // Buttons
     btn_copy: "КОПИРОВАТЬ",
     btn_pdf: "СКАЧАТЬ PDF",
@@ -113,7 +113,27 @@ export const translations = {
     stage_2_influencer: "АНАЛИЗ АУДИТОРИИ",
     stage_3_influencer: "ОЦЕНКА INTEGRITY",
     loading_images_influencer: "Проверка на накрутки и токсичность...",
-    loading_final_influencer: "Расчет Trust Score и рекламного потенциала..."
+    loading_final_influencer: "Расчет Trust Score и рекламного потенциала...",
+
+    // Photo Search
+    search_mode_username: "По Username",
+    search_mode_photo: "По Фото",
+    photo_upload_title: "Загрузите фото пользователя",
+    photo_drag_drop: "Перетащите фото сюда или нажмите для выбора",
+    photo_formats: "JPG, PNG, WEBP (макс. 10 МБ)",
+    photo_uploaded: "Загружено",
+    photo_search_btn: "Найти Instagram аккаунт",
+    photo_searching: "Ищем в Яндекс Изображениях...",
+    photo_results_title: "Найденные аккаунты",
+    photo_select_username: "Выберите аккаунт для анализа:",
+    photo_confidence: "Уверенность",
+    photo_source_url: "из URL",
+    photo_source_title: "из заголовка",
+    photo_source_description: "из описания",
+    photo_error_format: "Неверный формат файла. Используйте JPG, PNG или WEBP",
+    photo_error_size: "Файл слишком большой. Максимум 10 МБ",
+    photo_error_no_results: "Не удалось найти Instagram аккаунты по этому фото. Попробуйте другое изображение."
+
   },
   en: {
     // App.tsx
@@ -138,7 +158,7 @@ export const translations = {
     error_private_tip_4: "After analysis, restore privacy settings",
     error_credits_title: "SYSTEM OVERLOAD",
     error_credits_desc: "Neural core is unavailable due to computational resource limits (OpenRouter Credits). Please top up API balance or contact admin.",
-    
+
     // LoadingScreen
     stage_1: "Data Collection",
     stage_2: "Media Processing",
@@ -151,7 +171,7 @@ export const translations = {
     loading_images_debt: "Scanning for wealth markers...",
     loading_final: "Data synthesis and dossier generation...",
     loading_final_debt: "Fact correlation and recovery strategy generation...",
-    
+
     // AnalysisDashboard
     dossier_prefix: "REPORT:",
     followers: "Followers",
@@ -173,7 +193,7 @@ export const translations = {
     er_high: "High",
     er_avg: "Avg",
     er_tooltip: "Engagement Rate (ER) is the percentage of followers engaging with content (likes + comments). High ER > 3% indicates an active and loyal audience.",
-    
+
     // DigitalCircle
     circle_title: "Digital Circle (Close Connections)",
     badge_close: "Close",
@@ -204,7 +224,7 @@ export const translations = {
     chat_chips_2: "Rate sincerity",
     chat_chips_3: "Psychological profile",
     chat_title: "AI Assistant",
-    
+
     // Buttons
     btn_copy: "COPY RAW",
     btn_pdf: "SAVE PDF",
@@ -227,7 +247,27 @@ export const translations = {
     stage_2_influencer: "AUDIENCE ANALYSIS",
     stage_3_influencer: "INTEGRITY CHECK",
     loading_images_influencer: "Checking for fake followers and toxicity...",
-    loading_final_influencer: "Calculating Trust Score and ad potential..."
+    loading_final_influencer: "Calculating Trust Score and ad potential...",
+
+    // Photo Search
+    search_mode_username: "By Username",
+    search_mode_photo: "By Photo",
+    photo_upload_title: "Upload user photo",
+    photo_drag_drop: "Drag photo here or click to select",
+    photo_formats: "JPG, PNG, WEBP (max 10 MB)",
+    photo_uploaded: "Uploaded",
+    photo_search_btn: "Find Instagram Account",
+    photo_searching: "Searching on Yandex Images...",
+    photo_results_title: "Found Accounts",
+    photo_select_username: "Select account to analyze:",
+    photo_confidence: "Confidence",
+    photo_source_url: "from URL",
+    photo_source_title: "from title",
+    photo_source_description: "from description",
+    photo_error_format: "Invalid file format. Use JPG, PNG, or WEBP",
+    photo_error_size: "File too large. Maximum 10 MB",
+    photo_error_no_results: "Could not find Instagram accounts from this photo. Try another image."
+
   }
 };
 
