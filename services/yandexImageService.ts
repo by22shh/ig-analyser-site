@@ -1,9 +1,10 @@
 import { YandexImageSearchResponse, YandexImageResult, InstagramMatch } from '../types';
 
 // Environment variables
-const YANDEX_API_KEY = import.meta.env.VITE_YANDEX_API_KEY || '';
 const YANDEX_FOLDER_ID = import.meta.env.VITE_YANDEX_FOLDER_ID || '';
-const YANDEX_API_ENDPOINT = 'https://searchapi.yandex.net/v2/image/search';
+
+// Use proxy endpoint instead of direct API call
+const PROXY_ENDPOINT = '/api/yandex-search';
 
 /**
  * Convert image file to Base64 string
@@ -23,11 +24,11 @@ async function imageToBase64(file: File): Promise<string> {
 }
 
 /**
- * Search for similar images using Yandex Cloud Search API v2
+ * Search for similar images using Yandex Cloud Search API v2 via proxy
  */
 export async function searchByImage(imageFile: File): Promise<YandexImageSearchResponse> {
-    if (!YANDEX_API_KEY || !YANDEX_FOLDER_ID) {
-        throw new Error('Yandex Cloud API credentials not configured. Please set VITE_YANDEX_API_KEY and VITE_YANDEX_FOLDER_ID in .env.local');
+    if (!YANDEX_FOLDER_ID) {
+        throw new Error('Yandex Cloud Folder ID not configured. Please set VITE_YANDEX_FOLDER_ID in .env.local');
     }
 
     // Validate file type
@@ -46,11 +47,10 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
         // Convert image to Base64
         const base64Image = await imageToBase64(imageFile);
 
-        // Make API request
-        const response = await fetch(YANDEX_API_ENDPOINT, {
+        // Make request to proxy endpoint
+        const response = await fetch(PROXY_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Authorization': `Api-Key ${YANDEX_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -61,8 +61,8 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Yandex API error: ${response.status} - ${errorText}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
         const data: YandexImageSearchResponse = await response.json();
