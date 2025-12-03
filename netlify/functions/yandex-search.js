@@ -49,7 +49,7 @@ exports.handler = async (event, context) => {
         const requestBody = {
             folderId,
             data,
-            site,
+            // site parameter removed as it is not supported by Cloud API
         };
 
         console.log('Making request to Yandex API...');
