@@ -1,5 +1,5 @@
 // Netlify Function для проксирования запросов к Yandex Search API
-const https = require('https');
+const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
     // Разрешаем CORS
@@ -28,7 +28,7 @@ exports.handler = async (event, context) => {
 
     try {
         console.log('=== Yandex Search Proxy Started ===');
-        console.log('Request body:', event.body);
+        console.log('Request body length:', event.body?.length);
 
         const { folderId, data, site } = JSON.parse(event.body);
         console.log('Parsed request - folderId:', folderId, 'site:', site, 'data length:', data?.length);
@@ -46,71 +46,43 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Подготавливаем данные для запроса
-        const postData = JSON.stringify({
+        const requestBody = {
             folderId,
             data,
             site,
-        });
-        console.log('Post data prepared, size:', Buffer.byteLength(postData), 'bytes');
+        };
 
-        // Делаем запрос к Yandex API через https
-        const result = await new Promise((resolve, reject) => {
-            const options = {
-                hostname: 'searchapi.yandex.net',
-                port: 443,
-                path: '/v2/image/search',
-                method: 'POST',
-                headers: {
-                    'Authorization': `Api-Key ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData),
-                },
+        console.log('Making request to Yandex API...');
+
+        // Делаем запрос к Yandex API
+        const response = await fetch('https://searchapi.yandex.net/v2/image/search', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Api-Key ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', JSON.stringify(response.headers.raw()));
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API error response:', errorText);
+            return {
+                statusCode: response.status,
+                headers,
+                body: JSON.stringify({
+                    error: `Yandex API error: ${response.status}`,
+                    details: errorText
+                }),
             };
+        }
 
-            console.log('Making request to:', options.hostname + options.path);
+        const result = await response.json();
+        console.log('Successfully received response, images count:', result.images?.length || 0);
 
-            const req = https.request(options, (res) => {
-                console.log('Response status:', res.statusCode);
-                console.log('Response headers:', JSON.stringify(res.headers));
-
-                let responseData = '';
-
-                res.on('data', (chunk) => {
-                    responseData += chunk;
-                });
-
-                res.on('end', () => {
-                    console.log('Response received, length:', responseData.length);
-                    console.log('Response preview:', responseData.substring(0, 200));
-
-                    if (res.statusCode >= 200 && res.statusCode < 300) {
-                        try {
-                            const parsed = JSON.parse(responseData);
-                            console.log('Successfully parsed JSON response');
-                            resolve(parsed);
-                        } catch (e) {
-                            console.error('JSON parse error:', e.message);
-                            reject(new Error('Invalid JSON response'));
-                        }
-                    } else {
-                        console.error('API error response:', responseData);
-                        reject(new Error(`Yandex API error: ${res.statusCode} - ${responseData}`));
-                    }
-                });
-            });
-
-            req.on('error', (error) => {
-                console.error('Request error:', error.message, error.code);
-                reject(error);
-            });
-
-            console.log('Sending request...');
-            req.write(postData);
-            req.end();
-        });
-
-        console.log('Request successful, returning result');
         return {
             statusCode: 200,
             headers,
