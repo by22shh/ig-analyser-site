@@ -51,6 +51,7 @@ exports.handler = async (event, context) => {
         const result = await new Promise((resolve, reject) => {
             const options = {
                 hostname: 'searchapi.yandex.net',
+                port: 443,
                 path: '/v2/image/search',
                 method: 'POST',
                 headers: {
