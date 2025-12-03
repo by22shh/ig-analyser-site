@@ -195,10 +195,18 @@ export const PhotoUploadComponent: React.FC<PhotoUploadComponentProps> = ({ onUs
 
                     <div className="space-y-2">
                         {matches.map((match, index) => (
-                            <button
+                            <div
                                 key={index}
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => onUsernameSelect(match.username)}
-                                className="w-full bg-slate-800/50 hover:bg-cyan-900/30 border border-slate-700 hover:border-cyan-500/50 rounded-lg p-4 transition-all text-left group"
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                        event.preventDefault();
+                                        onUsernameSelect(match.username);
+                                    }
+                                }}
+                                className="w-full bg-slate-800/50 hover:bg-cyan-900/30 border border-slate-700 hover:border-cyan-500/50 rounded-lg p-4 transition-all text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
                             >
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="flex-1 min-w-0">
@@ -227,7 +235,7 @@ export const PhotoUploadComponent: React.FC<PhotoUploadComponentProps> = ({ onUs
                                         <Search className="w-5 h-5" />
                                     </div>
                                 </div>
-                            </button>
+                            </div>
                         ))}
                     </div>
                 </div>
