@@ -54,8 +54,9 @@ exports.handler = async (event, context) => {
 
         console.log('Making request to Yandex API...');
 
-        // Делаем запрос к Yandex API
-        const response = await fetch('https://searchapi.yandex.net/v2/image/search', {
+        // Делаем запрос к актуальному Yandex Search API по изображению
+        // См. документацию: https://searchapi.api.cloud.yandex.net/v2/image/search_by_image
+        const response = await fetch('https://searchapi.api.cloud.yandex.net/v2/image/search_by_image', {
             method: 'POST',
             headers: {
                 'Authorization': `Api-Key ${apiKey}`,
