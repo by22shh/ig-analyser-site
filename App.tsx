@@ -491,7 +491,7 @@ const App: React.FC = () => {
                                     </div>
                                 )}
 
-                                {!profileData && (
+                                {!profileData && searchMode === 'username' && (
                                     <button
                                         type="submit"
                                         className={`w-full font-bold py-5 rounded-lg transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider font-display shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] border border-cyan-400/20
