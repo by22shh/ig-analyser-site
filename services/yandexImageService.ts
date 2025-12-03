@@ -1,36 +1,12 @@
-import { YandexImageSearchResponse, YandexImageResult, InstagramMatch } from '../types';
+import { FaceCheckSearchResponse, FaceCheckImageResult, InstagramMatch } from '../types';
 
-// Environment variables
-const YANDEX_FOLDER_ID = import.meta.env.VITE_YANDEX_FOLDER_ID || '';
-
-// Use proxy endpoint instead of direct API call
-const PROXY_ENDPOINT = '/api/yandex-search';
+// Proxy endpoint for FaceCheck Netlify Function
+const PROXY_ENDPOINT = '/api/facecheck-search';
 
 /**
- * Convert image file to Base64 string
+ * Search for similar faces using FaceCheck API via proxy
  */
-async function imageToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64String = reader.result as string;
-            // Remove data URL prefix (data:image/jpeg;base64,)
-            const base64Data = base64String.split(',')[1];
-            resolve(base64Data);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-/**
- * Search for similar images using Yandex Cloud Search API v2 via proxy
- */
-export async function searchByImage(imageFile: File): Promise<YandexImageSearchResponse> {
-    if (!YANDEX_FOLDER_ID) {
-        throw new Error('Yandex Cloud Folder ID not configured. Please set VITE_YANDEX_FOLDER_ID in .env.local');
-    }
-
+export async function searchByImage(imageFile: File): Promise<FaceCheckSearchResponse> {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(imageFile.type)) {
@@ -44,8 +20,17 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
     }
 
     try {
-        // Convert image to Base64
-        const base64Image = await imageToBase64(imageFile);
+        // Convert image to Base64 (without data URL prefix)
+        const base64Image = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                const base64Data = base64String.split(',')[1];
+                resolve(base64Data);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(imageFile);
+        });
 
         // Make request to proxy endpoint
         const response = await fetch(PROXY_ENDPOINT, {
@@ -54,9 +39,7 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                folderId: YANDEX_FOLDER_ID,
-                data: base64Image,
-                site: 'instagram.com', // Filter results to Instagram only
+                imageBase64: base64Image,
             }),
         });
 
@@ -65,7 +48,7 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
             throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
-        const data: YandexImageSearchResponse = await response.json();
+        const data: FaceCheckSearchResponse = await response.json();
         return data;
     } catch (error: any) {
         console.error('Error searching by image:', error);
@@ -74,21 +57,20 @@ export async function searchByImage(imageFile: File): Promise<YandexImageSearchR
 }
 
 /**
- * Extract Instagram usernames from search results
+ * Extract Instagram usernames from FaceCheck search results
  */
-export function extractInstagramUsernames(results: YandexImageResult[]): InstagramMatch[] {
+export function extractInstagramUsernames(results: FaceCheckImageResult[]): InstagramMatch[] {
     const matches: InstagramMatch[] = [];
     const seenUsernames = new Set<string>();
 
     for (const result of results) {
-        // Extract username from URL
-        // Patterns: instagram.com/username/ or instagram.com/p/POST_ID/
-        if (result.pageUrl) {
-            const urlMatch = result.pageUrl.match(/instagram\.com\/([^\/\?]+)/);
+        // FaceCheck возвращает прямой URL страницы, где найдено фото
+        // Ищем username в ссылках на instagram.com
+        if (result.url) {
+            const urlMatch = result.url.match(/instagram\.com\/([^\/\?]+)/);
             if (urlMatch && urlMatch[1]) {
                 const username = urlMatch[1];
 
-                // Skip common non-username paths
                 if (['p', 'reel', 'tv', 'stories', 'explore', 'accounts'].includes(username)) {
                     continue;
                 }
@@ -98,43 +80,8 @@ export function extractInstagramUsernames(results: YandexImageResult[]): Instagr
                     matches.push({
                         username,
                         profileUrl: `https://instagram.com/${username}`,
-                        confidence: 90, // High confidence from URL
+                        confidence: Math.round(result.score) || 80,
                         source: 'url',
-                    });
-                }
-            }
-        }
-
-        // Extract username from page title
-        // Pattern: "Username (@username) • Instagram photos and videos"
-        if (result.pageTitle) {
-            const titleMatch = result.pageTitle.match(/@([a-zA-Z0-9._]+)/);
-            if (titleMatch && titleMatch[1]) {
-                const username = titleMatch[1];
-                if (!seenUsernames.has(username)) {
-                    seenUsernames.add(username);
-                    matches.push({
-                        username,
-                        profileUrl: `https://instagram.com/${username}`,
-                        confidence: 85, // High confidence from title
-                        source: 'title',
-                    });
-                }
-            }
-        }
-
-        // Extract from description/passage
-        if (result.passage) {
-            const passageMatch = result.passage.match(/@([a-zA-Z0-9._]+)/);
-            if (passageMatch && passageMatch[1]) {
-                const username = passageMatch[1];
-                if (!seenUsernames.has(username)) {
-                    seenUsernames.add(username);
-                    matches.push({
-                        username,
-                        profileUrl: `https://instagram.com/${username}`,
-                        confidence: 70, // Lower confidence from description
-                        source: 'description',
                     });
                 }
             }

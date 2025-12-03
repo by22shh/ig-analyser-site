@@ -65,22 +65,15 @@ export interface StrategicReport {
   visionAnalysis: string[];
 }
 
-// Yandex Image Search Types
-export interface YandexImageResult {
+// FaceCheck Image Search Types
+export interface FaceCheckImageResult {
+  score: number;
   url: string;
-  format: 'IMAGE_FORMAT_JPEG' | 'IMAGE_FORMAT_GIF' | 'IMAGE_FORMAT_PNG';
-  width: string;
-  height: string;
-  passage: string;
-  host: string;
-  pageTitle: string;
-  pageUrl: string;
+  base64: string;
 }
 
-export interface YandexImageSearchResponse {
-  images: YandexImageResult[];
-  page: string;
-  id: string; // CBIR ID for pagination
+export interface FaceCheckSearchResponse {
+  items: FaceCheckImageResult[];
 }
 
 export interface InstagramMatch {
