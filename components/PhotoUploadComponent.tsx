@@ -75,12 +75,12 @@ export const PhotoUploadComponent: React.FC<PhotoUploadComponentProps> = ({ onUs
         try {
             const results = await searchByImage(selectedFile);
 
-            if (!results.images || results.images.length === 0) {
+            if (!results.items || results.items.length === 0) {
                 setError(t('photo_error_no_results'));
                 return;
             }
 
-            const instagramMatches = extractInstagramUsernames(results.images);
+            const instagramMatches = extractInstagramUsernames(results.items);
 
             if (instagramMatches.length === 0) {
                 setError(t('photo_error_no_results'));
