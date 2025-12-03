@@ -27,12 +27,18 @@ exports.handler = async (event, context) => {
     }
 
     try {
+        console.log('=== Yandex Search Proxy Started ===');
+        console.log('Request body:', event.body);
+
         const { folderId, data, site } = JSON.parse(event.body);
+        console.log('Parsed request - folderId:', folderId, 'site:', site, 'data length:', data?.length);
 
         // Получаем API ключ из переменных окружения
         const apiKey = process.env.YANDEX_API_KEY;
+        console.log('API Key present:', !!apiKey, 'Length:', apiKey?.length);
 
         if (!apiKey) {
+            console.error('API key not configured!');
             return {
                 statusCode: 500,
                 headers,
@@ -46,6 +52,7 @@ exports.handler = async (event, context) => {
             data,
             site,
         });
+        console.log('Post data prepared, size:', Buffer.byteLength(postData), 'bytes');
 
         // Делаем запрос к Yandex API через https
         const result = await new Promise((resolve, reject) => {
@@ -61,7 +68,12 @@ exports.handler = async (event, context) => {
                 },
             };
 
+            console.log('Making request to:', options.hostname + options.path);
+
             const req = https.request(options, (res) => {
+                console.log('Response status:', res.statusCode);
+                console.log('Response headers:', JSON.stringify(res.headers));
+
                 let responseData = '';
 
                 res.on('data', (chunk) => {
@@ -69,26 +81,36 @@ exports.handler = async (event, context) => {
                 });
 
                 res.on('end', () => {
+                    console.log('Response received, length:', responseData.length);
+                    console.log('Response preview:', responseData.substring(0, 200));
+
                     if (res.statusCode >= 200 && res.statusCode < 300) {
                         try {
-                            resolve(JSON.parse(responseData));
+                            const parsed = JSON.parse(responseData);
+                            console.log('Successfully parsed JSON response');
+                            resolve(parsed);
                         } catch (e) {
+                            console.error('JSON parse error:', e.message);
                             reject(new Error('Invalid JSON response'));
                         }
                     } else {
+                        console.error('API error response:', responseData);
                         reject(new Error(`Yandex API error: ${res.statusCode} - ${responseData}`));
                     }
                 });
             });
 
             req.on('error', (error) => {
+                console.error('Request error:', error.message, error.code);
                 reject(error);
             });
 
+            console.log('Sending request...');
             req.write(postData);
             req.end();
         });
 
+        console.log('Request successful, returning result');
         return {
             statusCode: 200,
             headers,
@@ -96,14 +118,20 @@ exports.handler = async (event, context) => {
         };
 
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error('=== ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 error: 'Internal server error',
-                message: error.message
+                message: error.message,
+                type: error.constructor.name
             }),
         };
     }
 };
+```
