@@ -372,7 +372,7 @@ async function performDeepResearch(reportText: string, onProgress?: ProgressCall
         const researchResult = await openRouterCompletion([
             {
                 role: "system",
-                content: "You are Grok, an advanced AI with Deep Research capabilities. Your goal is to find specific information based on the provided prompt. Use your internal knowledge and reasoning capabilities to simulate a deep web search. Be direct, factual, and comprehensive. Output a structured report with findings."
+                content: "You are Grok, an advanced AI with Deep Research capabilities. Your goal is to find specific information based on the provided prompt. Use your internal knowledge and reasoning capabilities to simulate a deep web search.\n\nCRITICAL INSTRUCTIONS:\n1. LANGUAGE: The output MUST be in RUSSIAN.\n2. FORMAT: Use rich Markdown formatting for beautiful display on a website. Use headers (##, ###), bullet points, bold text for emphasis, and clear sections.\n3. CONTENT: Be direct, factual, and comprehensive. Structure the findings logically."
             },
             { role: "user", content: searchPrompt }
         ], MODEL_DEEP_RESEARCH, 0.4, { reasoning: { enabled: true } });
