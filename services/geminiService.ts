@@ -307,9 +307,15 @@ export const analyzeProfileWithGemini = async (
             sections.push({ title: "Strategic Analysis", content: reportText });
         }
 
+        // Filter out the OSINT PROMPT section from the display (it's internal for Deep Research)
+        const filteredSections = sections.filter(s =>
+            !s.title.toUpperCase().includes("OSINT PROMPT") &&
+            !s.title.toUpperCase().includes("ГЕНЕРАЦИЯ ПОИСКОВОГО ЗАПРОСА")
+        );
+
         return {
             rawText: reportText,
-            sections,
+            sections: filteredSections,
             visionAnalysis: imageAnalysisResults,
             deepResearch: await performDeepResearch(reportText, onProgress)
         };

@@ -786,37 +786,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
       <DigitalCircle profile={profile} />
 
       {/* Digital Footprint Section (New) */}
-      {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0) && (
+      {(uniqueLocations.length > 0 || uniqueMusic.length > 0 || relatedProfiles.length > 0 || pinnedPostsCount > 0 || analysis.deepResearch) && (
         <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <Terminal className="w-4 h-4 text-green-500" /> {t('footprint_title')}
           </h3>
-          {/* Deep Research Section (Collapsible) */}
-          {analysis.deepResearch && (
-            <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
-              <button
-                onClick={() => setShowDeepResearch(!showDeepResearch)}
-                className="w-full flex items-center justify-between text-left group"
-              >
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-yellow-500" />
-                  DEEP RESEARCH (AI AGENT)
-                </h3>
-                <div className={`transform transition-transform duration-300 ${showDeepResearch ? 'rotate-180' : ''}`}>
-                  <div className="text-cyber-accent text-xs font-mono group-hover:underline">
-                    {showDeepResearch ? 'COLLAPSE' : 'EXPAND'}
-                  </div>
-                </div>
-              </button>
-
-              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showDeepResearch ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-                <div className="prose prose-invert prose-sm max-w-none border-t border-cyber-800 pt-4">
-                  {renderMarkdown(analysis.deepResearch)}
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {uniqueLocations.length > 0 && (
@@ -878,6 +852,32 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
               </div>
             )}
           </div>
+
+          {/* Deep Research Section (Collapsible) - Moved to bottom */}
+          {analysis.deepResearch && (
+            <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid mt-6">
+              <button
+                onClick={() => setShowDeepResearch(!showDeepResearch)}
+                className="w-full flex items-center justify-between text-left group"
+              >
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-yellow-500" />
+                  DEEP RESEARCH (AI AGENT)
+                </h3>
+                <div className={`transform transition-transform duration-300 ${showDeepResearch ? 'rotate-180' : ''}`}>
+                  <div className="text-cyber-accent text-xs font-mono group-hover:underline">
+                    {showDeepResearch ? 'COLLAPSE' : 'EXPAND'}
+                  </div>
+                </div>
+              </button>
+
+              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showDeepResearch ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                <div className="prose prose-invert prose-sm max-w-none border-t border-cyber-800 pt-4">
+                  {renderMarkdown(analysis.deepResearch)}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
