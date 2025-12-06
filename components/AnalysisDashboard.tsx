@@ -78,16 +78,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-cyber-900/90 border border-cyber-accent/30 p-3 rounded shadow-xl backdrop-blur-md pointer-events-auto">
         <p className="text-white font-mono text-xs mb-2">{label}</p>
         {postData?.url && (
-            <a 
-              href={postData.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[10px] text-cyber-accent mb-2 pb-2 border-b border-cyber-accent/20 hover:text-white transition-colors group cursor-pointer z-50 relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-                <span className="truncate">{t('chart_open_post')}</span>
-                <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
-            </a>
+          <a
+            href={postData.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-[10px] text-cyber-accent mb-2 pb-2 border-b border-cyber-accent/20 hover:text-white transition-colors group cursor-pointer z-50 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="truncate">{t('chart_open_post')}</span>
+            <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
+          </a>
         )}
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-xs font-mono">
@@ -113,17 +113,17 @@ const renderMarkdown = (text: string) => {
     // Pass 1: Links [text](url)
     // We split by the regex capturing group to keep the separators
     const parts = str.split(/(\[[^\]]+\]\([^)]+\))/g);
-    
+
     return parts.map((part, i) => {
       // Check if this part is a link
       const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (linkMatch) {
         return (
-          <a 
-            key={`link-${i}`} 
-            href={linkMatch[2]} 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            key={`link-${i}`}
+            href={linkMatch[2]}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-cyber-accent hover:underline hover:text-cyan-400 transition-colors cursor-pointer"
             onClick={(e) => e.stopPropagation()}
           >
@@ -502,6 +502,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   const { t } = useLanguage();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDeepResearch, setShowDeepResearch] = useState(false);
   const [reportOptions, setReportOptions] = useState<ReportOptions>({
     title: `CONFIDENTIAL DOSSIER: @${profile.username.toUpperCase()}`,
     logoUrl: "",
@@ -540,7 +541,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
   // 1. Real-time updates: Likes/comments change on Instagram in real-time
   // 2. Follower count changes: followersCount may differ between requests
   // 3. Post engagement updates: Even same posts may have different engagement counts
-  
+
   const posts = profile.posts || [];
   const totalLikes = posts.reduce((acc, p) => acc + p.likesCount, 0);
   const totalComments = posts.reduce((acc, p) => acc + p.commentsCount, 0);
@@ -584,7 +585,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     lastPostDate = `${day}.${month}.${year}`;
-    
+
     if (posts.length > 1) {
       const firstDate = new Date(posts[posts.length - 1].timestamp).getTime();
       const lastDate = new Date(posts[0].timestamp).getTime();
@@ -726,11 +727,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           icon={Activity}
           tooltip={t('er_tooltip')}
         />
-        <StatCard 
-          label={t('stat_freq')} 
-          value={frequency} 
-          subValue={lastPostDate ? `${t('stat_last_post')}: ${lastPostDate}` : ''} 
-          icon={Calendar} 
+        <StatCard
+          label={t('stat_freq')}
+          value={frequency}
+          subValue={lastPostDate ? `${t('stat_last_post')}: ${lastPostDate}` : ''}
+          icon={Calendar}
         />
       </div>
 
@@ -746,29 +747,29 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
               <BarChart data={chartData} barGap={2} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={true} strokeOpacity={0.3} />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis 
-                  yAxisId="likes" 
-                  orientation="left" 
-                  stroke="#22d3ee" 
-                  fontSize={10} 
-                  tickLine={false} 
+                <YAxis
+                  yAxisId="likes"
+                  orientation="left"
+                  stroke="#22d3ee"
+                  fontSize={10}
+                  tickLine={false}
                   axisLine={false}
                   domain={[0, 'auto']}
                   tick={{ fill: '#22d3ee' }}
                 />
-                <YAxis 
-                  yAxisId="comments" 
-                  orientation="right" 
-                  stroke="#a855f7" 
-                  fontSize={10} 
-                  tickLine={false} 
+                <YAxis
+                  yAxisId="comments"
+                  orientation="right"
+                  stroke="#a855f7"
+                  fontSize={10}
+                  tickLine={false}
                   axisLine={false}
                   domain={[0, 'auto']}
                   tick={{ fill: '#a855f7' }}
                 />
-                <Tooltip 
-                  content={<CustomTooltip />} 
-                  cursor={{ fill: 'rgba(34,211,238,0.05)' }} 
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: 'rgba(34,211,238,0.05)' }}
                   trigger="click"
                   wrapperStyle={{ outline: 'none', zIndex: 1000 }}
                 />
@@ -790,6 +791,32 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ profile, a
           <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
             <Terminal className="w-4 h-4 text-green-500" /> {t('footprint_title')}
           </h3>
+          {/* Deep Research Section (Collapsible) */}
+          {analysis.deepResearch && (
+            <div className="bg-cyber-900/30 border border-cyber-800 p-6 rounded-xl break-inside-avoid">
+              <button
+                onClick={() => setShowDeepResearch(!showDeepResearch)}
+                className="w-full flex items-center justify-between text-left group"
+              >
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-yellow-500" />
+                  DEEP RESEARCH (AI AGENT)
+                </h3>
+                <div className={`transform transition-transform duration-300 ${showDeepResearch ? 'rotate-180' : ''}`}>
+                  <div className="text-cyber-accent text-xs font-mono group-hover:underline">
+                    {showDeepResearch ? 'COLLAPSE' : 'EXPAND'}
+                  </div>
+                </div>
+              </button>
+
+              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showDeepResearch ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                <div className="prose prose-invert prose-sm max-w-none border-t border-cyber-800 pt-4">
+                  {renderMarkdown(analysis.deepResearch)}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {uniqueLocations.length > 0 && (

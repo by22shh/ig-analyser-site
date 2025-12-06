@@ -11,20 +11,24 @@ const SITE_NAME = "ZRETI Instagram Analyzer";
 // MODEL CONFIGURATION
 // Мы разделяем модели для оптимизации скорости и качества (Speed vs Intelligence)
 
-// 1. VISION MODEL: Gemini 2.0 Flash
+// 1. VISION MODEL: 
 // Используется для анализа изображений.
 // Почему: Самая быстрая мультимодальная модель. Отлично считывает детали, но работает быстро, что критично для пачки из 10-12 фото.
 const MODEL_VISION = "google/gemini-3-pro-preview";
 
-// 2. REASONING MODEL: Gemini 2.0 Pro (Experimental)
+// 2. REASONING MODEL: 
 // Используется для составления ГЛАВНОГО ОТЧЕТА.
 // Почему: Самый высокий IQ. Способна связать разрозненные факты в сложный психологический портрет.
 const MODEL_REASONING = "google/gemini-3-pro-preview";
 
-// 3. CHAT MODEL: Gemini 2.0 Pro (Experimental)
+// 3. CHAT MODEL: 
 // Используется для ЧАТА.
 // Почему: Для чата важен умный контекст, а не скорость ответов робота. Используем ту же мощную модель, что и для отчета.
 const MODEL_CHAT = "google/gemini-3-pro-preview";
+
+// 4. DEEP RESEARCH MODEL:
+// Используется для глубокого поиска информации.
+const MODEL_DEEP_RESEARCH = "x-ai/grok-4.1-fast";
 
 // --- UTILS ---
 
@@ -73,7 +77,8 @@ interface OpenRouterMessage {
 async function openRouterCompletion(
     messages: OpenRouterMessage[],
     model: string,
-    temperature: number = 0.7
+    temperature: number = 0.7,
+    extraParams: Record<string, any> = {}
 ): Promise<string> {
     if (!OPENROUTER_API_KEY) {
         throw new Error("OPENROUTER_API_KEY is missing in environment variables.");
@@ -101,6 +106,7 @@ async function openRouterCompletion(
                     model: model,
                     messages: messages,
                     temperature: temperature,
+                    ...extraParams
                 }),
                 signal: controller.signal
             });
@@ -110,12 +116,12 @@ async function openRouterCompletion(
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 const errorMessage = JSON.stringify(errorData);
-                
+
                 // Check for insufficient credits/quota
                 if (response.status === 402 || errorMessage.includes("credit") || errorMessage.includes("balance") || errorMessage.includes("quota")) {
                     throw new Error("ACCESS_DENIED_CREDITS");
                 }
-                
+
                 throw new Error(`OpenRouter API Error: ${response.status} - ${errorMessage}`);
             }
 
@@ -304,12 +310,13 @@ export const analyzeProfileWithGemini = async (
         return {
             rawText: reportText,
             sections,
-            visionAnalysis: imageAnalysisResults
+            visionAnalysis: imageAnalysisResults,
+            deepResearch: await performDeepResearch(reportText, onProgress)
         };
 
     } catch (error: any) {
         console.error("Critical Strategy Generation Error:", error);
-        
+
         // Propagate credit errors directly to UI
         if (error.message === "ACCESS_DENIED_CREDITS") {
             throw error;
@@ -348,6 +355,33 @@ async function analyzeImageBatch(images: { id: string, data: string }[], results
         }
     } catch (err) {
         console.warn(`Failed to analyze image batch`, err);
+    }
+}
+
+async function performDeepResearch(reportText: string, onProgress?: ProgressCallback): Promise<string | undefined> {
+    try {
+        // Extract the search prompt
+        const match = /\[\[SEARCH_PROMPT_START\]\]([\s\S]*?)\[\[SEARCH_PROMPT_END\]\]/.exec(reportText);
+        if (!match || !match[1].trim()) return undefined;
+
+        const searchPrompt = match[1].trim();
+
+        if (onProgress) onProgress(0, 100, 'processing'); // Update status to processing deep research
+
+        // Call the Deep Research Model (Grok)
+        const researchResult = await openRouterCompletion([
+            {
+                role: "system",
+                content: "You are Grok, an advanced AI with Deep Research capabilities. Your goal is to find specific information based on the provided prompt. Use your internal knowledge and reasoning capabilities to simulate a deep web search. Be direct, factual, and comprehensive. Output a structured report with findings."
+            },
+            { role: "user", content: searchPrompt }
+        ], MODEL_DEEP_RESEARCH, 0.4, { reasoning: { enabled: true } });
+
+        return researchResult;
+
+    } catch (error) {
+        console.warn("Deep Research failed:", error);
+        return undefined;
     }
 }
 

@@ -63,6 +63,7 @@ export interface StrategicReport {
   rawText: string;
   sections: { title: string; content: string }[];
   visionAnalysis: string[];
+  deepResearch?: string;
 }
 
 // FaceCheck Image Search Types
